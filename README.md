@@ -1,6 +1,6 @@
 # M3U Studio
 
-Alat za pravljenje i uređivanje `.m3u` plejlisti internet radio stanica. Cela aplikacija je jedan fajl, `index.html`, bez build koraka i bez zavisnosti (osim Google Fonts, koji su opcioni).
+Alat za pravljenje i uređivanje `.m3u` plejlisti internet radio stanica. Statična aplikacija (Vite, čist JavaScript, bez frameworka), radi na GitHub Pages.
 
 Šta zamenjuje: ručno traženje loga, smanjivanje na 300x300, uploadovanje na hosting za slike, kopiranje linka u fajl i ručno slaganje redosleda.
 
@@ -24,30 +24,47 @@ https://radio.lyl.live/hls/aac_hifi.m3u8
 
 ## Pokretanje
 
-### Lokalno
-
-Dvoklik na `index.html` (Chrome, Edge ili Firefox). Ako upload ne radi iz fajla (pogledaj "Problemi"), pokreni lokalni server:
+Potreban je Node.js 20.19 ili noviji.
 
 ```bash
-npx serve .
-# ili
-python3 -m http.server 8080
+npm install
+npm run dev       # razvojni server sa automatskim osvežavanjem
+npm test          # testovi (parser, pomoćne funkcije)
+npm run build     # produkcioni build u dist/
+npm run preview   # lokalni pregled build-a
 ```
 
-pa otvori adresu koju ispiše.
+## API ključ i `.env`
 
-### Vercel (ako lokalno ne radi, ili za deljenje)
+Ključ za upload slika može da se zada na dva načina:
 
-Aplikacija je statična, nema build koraka.
+1. **U aplikaciji** (dugme **Upload slika**). Čuva se samo u tom browseru (`localStorage`). Ovo je preporučeno za javni sajt.
+2. **U `.env` fajlu**, za lokalni rad:
 
-1. Stavi `index.html` (i ovaj README) u GitHub repo, `index.html` u korenu.
-2. Na vercel.com: **Add New, Project**, izaberi repo.
-3. **Framework Preset:** `Other`. **Build Command** i **Output Directory** ostavi prazne.
-4. **Deploy.**
+   ```bash
+   cp .env.example .env
+   # pa upiši VITE_IMGBB_API_KEY=...
+   ```
 
-Posle refaktora u više fajlova (ili sa bundlerom) podesi Build Command i Output Directory prema alatu koji koristiš (npr. Vite: `npm run build` i `dist`).
+Ključ unet u aplikaciji ima prednost. Ako je polje u aplikaciji prazno, koristi se ključ iz `.env`.
 
-Bitno: **API ključ nikad ne ide u kod ni u repo.** Svako ga unosi u aplikaciji, a čuva se samo u njegovom browseru (`localStorage`).
+**Važno:** Vite ugrađuje sve `VITE_*` vrednosti u JavaScript koji se šalje browseru. Ako ključ iz `.env` uđe u build koji ide na GitHub Pages, svako ko otvori sajt može da ga pročita (i da uploaduje slike na tvoj nalog). Zato `.env` nije u repou (`.gitignore`), a GitHub Actions workflow podrazumevano ne ubacuje ključ u build.
+
+| Promenljiva | Značenje |
+|---|---|
+| `VITE_UPLOAD_PROVIDER` | `imgbb` (podrazumevano) ili `imgur` |
+| `VITE_IMGBB_API_KEY` | ImgBB API ključ |
+| `VITE_IMGUR_CLIENT_ID` | Imgur Client ID |
+
+## Deploy na GitHub Pages
+
+Workflow `.github/workflows/deploy.yml` na svaki push na `main` pokreće testove, pravi build i objavljuje `dist/`.
+
+Jednom podesi na GitHub-u: **Settings, Pages, Build and deployment, Source: GitHub Actions**. Posle sledećeg pusha sajt je na `https://<korisnik>.github.io/m3u-manager/`.
+
+Ako ipak želiš ključ ugrađen u javni build: dodaj ga u **Settings, Secrets and variables, Actions** kao `VITE_IMGBB_API_KEY` i otkomentariši odgovarajuću liniju u workflow-u. Podrazumevani servis može da se zada kao repo varijabla `VITE_UPLOAD_PROVIDER`.
+
+Aplikacija koristi relativne putanje (`base: './'` u `vite.config.js`), pa radi i na Vercel-u, Netlify-ju ili bilo kom statičnom hostingu (Build Command `npm run build`, Output Directory `dist`).
 
 ## Kako napraviti ImgBB API ključ
 
@@ -57,13 +74,13 @@ ImgBB je besplatan hosting za slike sa API-jem. Ključ je potreban samo za autom
 2. Otvori **https://api.imgbb.com/**.
 3. Klikni **Get API key**. Ako nisi prijavljen, tražiće prijavu.
 4. Kopiraj ključ (dugačak niz slova i brojeva).
-5. U M3U Studiju klikni **Upload slika** (gore desno), izaberi **ImgBB**, nalepi ključ u polje i klikni **Sačuvaj**.
+5. U M3U Studiju klikni **Upload slika** (gore desno), izaberi **ImgBB**, nalepi ključ u polje i klikni **Sačuvaj**. (Ili ga upiši u `.env`, vidi gore.)
 
 Odmah probaj: dodaj stanicu sa slikom. Ako se u listi pojavi logo bez oznake "Upload ↻", upload radi.
 
 Napomene:
 - Aplikacija ne šalje parametar za istek, pa uploadovane slike ostaju na ImgBB-u dok ih ti ne obrišeš sa svog naloga.
-- Ključ je vezan za tvoj nalog. Ne deli ga i ne stavljaj u javni repo. Ako procuri, na stranici api.imgbb.com možeš da ga zameniš novim (ime opcije može da se razlikuje, pogledaj stranicu).
+- Ključ je vezan za tvoj nalog. Ne deli ga i ne stavljaj u javni repo. Ako procuri, na stranici api.imgbb.com možeš da ga zameniš novim.
 - ImgBB servis i njegova ograničenja (veličina fajla, brzina, pravila) menjaju se nezavisno od ove aplikacije, pa proveri aktuelne uslove na njihovom sajtu.
 
 ### Imgur (alternativa)
@@ -77,12 +94,15 @@ Imgur ima stroža ograničenja i neke mreže ga blokiraju, pa je ImgBB podrazume
 
 ### Postimages
 
-Postimages.org nema javni API koji sam uspeo da potvrdim, zato nije ugrađen. Ako želiš ručni tok: u kropperu klikni **Preuzmi PNG** (300x300), uploaduj ga na postimages.org, a dobijeni direktan link nalepi u polje **Link logotipa**.
+Postimages.org nema javni API, zato nije ugrađen. Ručni tok: u kropperu klikni **Preuzmi PNG** (300x300), uploaduj ga na postimages.org, a dobijeni direktan link nalepi u polje **Link logotipa**.
 
 ## Problemi
 
 **"Upload nije uspeo: nema veze sa servisom"**
-Zahtev je blokiran ili nema mreže. Proveri internet i ad-blocker. Ako se otvara kao `file://`, probaj preko lokalnog servera ili Vercel-a, jer neki servisi ne vole zahteve sa `file://` adrese.
+Zahtev je blokiran ili nema mreže. Proveri internet i ad-blocker.
+
+**"Upload nije uspeo: servis ne odgovara"**
+Servis nije odgovorio za 30 sekundi. Pokušaj ponovo klikom na oznaku "Upload ↻" na stanici.
 
 **Stanica je dodata, ali je logo označen "Upload ↻"**
 Ključ nije unet ili upload nije prošao. Podesi ključ pa klikni oznaku na stanici za novi pokušaj. Pri čuvanju plejliste aplikacija će te upozoriti na sve logotipe koji još nisu uploadovani (nisu u fajlu dok ne prođu).
@@ -91,26 +111,43 @@ Ključ nije unet ili upload nije prošao. Podesi ključ pa klikni oznaku na stan
 Dugme "Kropuj" radi samo za slike sa sajtova koji dozvoljavaju CORS. Sačuvaj sliku na računar (desni klik, Save image as) i prevuci je u polje za logo.
 
 **Nestala lista posle zatvaranja taba**
-Nacrt se vraća automatski samo ako je lista imala nesačuvane izmene. Ako je sačuvana, uvezi fajl ponovo. U privatnom prozoru ili sa obrisanim podacima sajta nacrt se ne pamti.
+Nacrt se vraća automatski samo ako je lista imala nesačuvane izmene. Ako je sačuvana, uvezi fajl ponovo. U privatnom prozoru ili sa obrisanim podacima sajta nacrt se ne pamti. Ako browser nema mesta za nacrt (mnogo logotipa koji čekaju upload), aplikacija to javlja porukom.
 
-## Za refaktor
+## Struktura koda
 
-Sve je u `index.html` (CSS, markup i jedna skripta). Mesta koja su već odvojena:
+```
+index.html                 markup
+public/favicon.svg
+src/
+  main.js                  pokretanje: vraća podešavanja i nacrt, vezuje događaje
+  config.js                .env vrednosti i konstante
+  state.js                 stanje aplikacije, podešavanje upload-a, nacrt
+  storage.js               localStorage (bez grešaka u privatnom režimu)
+  styles.css
+  lib/                     čiste funkcije, bez DOM-a (imaju testove)
+    m3u.js                 parseM3U, serializeM3U, parseAttrs
+    station.js             model stanice, createStation, normalizeStation
+    text.js                množina, ime fajla, validacija linka...
+    blob.js                data URL u Blob, preuzimanje fajla
+  services/
+    upload.js              upload na ImgBB / Imgur (novi servis = nova funkcija u UPLOADERS)
+  ui/
+    dom.js                 els (svi elementi sa id-jem), toast, dugme sa potvrdom
+    status.js              gornja traka, brojač, odloženo čuvanje nacrta
+    form.js                forma za dodavanje i izmenu stanice
+    cropper.js             kropper za logo (300x300 PNG)
+    list.js                lista stanica i promena redosleda
+    playlist.js            uvoz, čuvanje, kopiranje, nova lista
+    uploads.js             ponovni upload logotipa koji čekaju
+    settings-dialog.js     dijalog "Upload slika"
+```
 
-- **Čiste funkcije** (bez DOM-a, lako se izdvajaju i testiraju), označene komentarima `// <pure>` i `// </pure>`: `parseAttrs`, `makeStation`, `parseM3U`, `serializeList`.
-- **Stanje:** objekat `S` (`stations`, `header`, `filename`, `selectedId`, `dirty`, `busy`) i `settings` (`provider`, `imgbb`, `imgur`).
-- **Model stanice:**
-  ```js
-  { id, name, url, dur: '-1', logo: '', pending: '', attrs: [[k, v]], extras: ['#EXTVLCOPT:...'] }
-  ```
-  `logo` je uploadovan URL, `pending` je data URL slike koja čeka upload, `attrs` su ostali atributi iz `#EXTINF`, `extras` su dodatne `#` linije između `#EXTINF` i linka.
-- **Upload:** funkcija `uploadLogo(blob)` vraća URL slike. Novi servis se dodaje kao još jedna grana u njoj, plus opcija u dijalogu za podešavanje.
-- **Kropper:** objekat `crop` i funkcije `drawCrop`, `clampCrop`, `exportCrop`. Isti `drawCrop` crta pregled (600x600) i izvoz (300x300).
-- **Prevlačenje redosleda:** `startDrag` (pointer događaji, radi i na touch uređajima).
-- **Čuvanje u browseru:** ključevi `m3ustudio.draft.v1` (nacrt) i `m3ustudio.settings.v1` (servis i ključ).
+Model stanice:
 
-Predlog podele: `parser.js` (čiste funkcije), `cropper.js`, `upload.js`, `state.js`, `ui.js`, `styles.css`.
+```js
+{ id, name, url, dur: '-1', logo: '', pending: '', attrs: [[k, v]], extras: ['#EXTVLCOPT:...'] }
+```
 
-## Licenca
+`logo` je uploadovan URL, `pending` je data URL slike koja čeka upload, `attrs` su ostali atributi iz `#EXTINF`, `extras` su dodatne `#` linije između `#EXTINF` i linka.
 
-Po tvom izboru.
+Ključevi u `localStorage`: `m3ustudio.draft.v1` (nacrt) i `m3ustudio.settings.v1` (servis i ključ). Isti su kao u staroj verziji, pa se postojeći nacrt i podešavanja zadržavaju.
