@@ -1,0 +1,921 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>M3U Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: dva panela. Levo forma sa kropperom (300x300), desno lista stanica sa prevlačenjem. Zeleno-siva "konzola", ember narandžasta samo za primarne akcije i izabranu stanicu. */
+:root{
+  --bg:#E7EAE3; --panel:#F5F7F2; --row:#FFFFFF; --field:#ECEFE7;
+  --ink:#17211D; --muted:#58675F; --line:#C9D1C6; --line-strong:#9FAD9F;
+  --accent:#C93F14; --accent-ink:#FFFFFF; --accent-soft:#F6DFD4;
+  --teal:#1D5A52; --warn:#8F5B0C; --warn-soft:#F6E8CC; --danger:#B3261E;
+  --check1:#DADFD6; --check2:#EEF1EA;
+  --shadow:0 1px 0 rgba(23,33,29,.06),0 10px 26px -14px rgba(23,33,29,.35);
+  --f-ui:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --gutter:16px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0F1513; --panel:#172019; --row:#1C2720; --field:#1F2B24;
+    --ink:#E6EDE7; --muted:#94A69C; --line:#2B3A32; --line-strong:#496055;
+    --accent:#FF6B3D; --accent-ink:#1A0E08; --accent-soft:#3A2219;
+    --teal:#5FC4B4; --warn:#E5B454; --warn-soft:#3A2E14; --danger:#FF8A80;
+    --check1:#26332B; --check2:#1B261F;
+    --shadow:0 1px 0 rgba(0,0,0,.4),0 12px 28px -14px rgba(0,0,0,.7);
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.45 var(--f-ui)}
+[hidden]{display:none!important}
+button,input,select{font:inherit;color:inherit}
+h2{margin:0}
+a{color:var(--teal)}
+
+/* Gornja traka */
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  padding:10px var(--gutter);min-height:56px;background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px}
+.mark{font:600 13px/1 var(--f-mono);letter-spacing:.04em;background:var(--accent);color:var(--accent-ink);padding:6px 7px;border-radius:3px}
+.word{font-weight:800;font-stretch:115%;letter-spacing:.04em;font-size:17px;text-transform:uppercase}
+.bar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.status{font:500 12px var(--f-mono);color:var(--muted)}
+.status.dirty::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-right:7px}
+
+/* Raspored */
+main{padding:var(--gutter);display:grid;gap:var(--gutter);grid-template-columns:minmax(0,1fr)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;display:flex;flex-direction:column;min-width:0;box-shadow:var(--shadow)}
+.phead{flex:none;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line)}
+.phead h2{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-stretch:85%}
+.grow{flex:1}
+.tag{font:500 12px var(--f-mono);color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:2px 7px;white-space:nowrap}
+.pbody{padding:16px;display:flex;flex-direction:column;gap:16px}
+@media (min-width:861px){
+  html,body{height:100%}
+  body{display:flex;flex-direction:column}
+  main{flex:1;min-height:0;grid-template-columns:minmax(340px,440px) minmax(0,1fr)}
+  .panel{min-height:0}
+  .left{overflow:auto}
+  .listwrap{flex:1;min-height:0;overflow:auto}
+}
+
+/* Dugmad */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;
+  background:transparent;border:1px solid var(--line-strong);border-radius:4px;padding:9px 14px;font-weight:600;line-height:1.2;white-space:nowrap}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.small{padding:6px 10px;font-size:13px}
+.btn.ghost{border-color:transparent}
+.btn.ghost:hover{border-color:var(--line-strong)}
+.btn.danger{color:var(--danger);border-color:var(--danger)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn:focus-visible,input:focus-visible,select:focus-visible,.dz:focus-visible,.grip:focus-visible,.rowmain:focus-visible,.flag:focus-visible,summary:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+@media (max-width:560px){.hide-sm{display:none}}
+
+/* Polja */
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+label,.lab{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-stretch:90%}
+input[type=text],input[type=number],input[type=password],input:not([type]),select{
+  width:100%;min-width:0;background:var(--field);border:1px solid var(--line);border-radius:4px;padding:10px 12px}
+.mono{font-family:var(--f-mono);font-size:13px}
+input[aria-invalid=true]{border-color:var(--danger)}
+input:disabled{opacity:.6}
+.err{margin:0;color:var(--danger);font-size:13px}
+.hint{margin:0;color:var(--muted);font-size:13px}
+.inline{display:flex;gap:8px}
+.posrow{flex-direction:row;align-items:center;gap:10px;flex-wrap:wrap}
+.posrow input{width:92px}
+
+/* Logo: zona za sliku i kropper */
+.dz{display:grid;place-items:center;gap:6px;text-align:center;padding:22px 16px;border:1.5px dashed var(--line-strong);
+  border-radius:6px;background:var(--field);cursor:pointer;color:var(--muted);font-size:14px}
+.dz:hover,.dz.over{border-color:var(--teal);color:var(--ink)}
+.dz strong{color:var(--ink)}
+.note{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:9px 12px;margin-bottom:10px;border-radius:4px;background:var(--warn-soft);color:var(--ink);font-size:13px}
+.stage{position:relative;width:min(100%,300px);aspect-ratio:1;margin-inline:auto;border:1px solid var(--line-strong);
+  background:conic-gradient(var(--check1) 25%,var(--check2) 0 50%,var(--check1) 0 75%,var(--check2) 0) 0 0/16px 16px}
+.stage canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+.stage.grab canvas{cursor:grabbing}
+.stage .px{position:absolute;right:6px;bottom:6px;font:500 11px var(--f-mono);background:rgba(10,15,12,.72);color:#fff;padding:2px 6px;border-radius:2px;pointer-events:none}
+.ctl{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.ctl .r{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+input[type=range]{flex:1;min-width:120px;accent-color:var(--accent);padding:0}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:4px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:6px 11px;font-weight:600;font-size:13px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--line-strong)}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--panel)}
+.logorow{display:grid;grid-template-columns:72px minmax(0,1fr);gap:12px;align-items:end;margin-top:14px}
+.lthumb{width:72px;height:72px;border:1px solid var(--line);border-radius:3px;overflow:hidden;display:grid;place-items:center;
+  color:var(--muted);font:600 11px var(--f-mono);
+  background:conic-gradient(var(--check1) 25%,var(--check2) 0 50%,var(--check1) 0 75%,var(--check2) 0) 0 0/12px 12px}
+.lthumb img{width:100%;height:100%;object-fit:contain}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.actions .primary{flex:1}
+
+/* Lista */
+.fnrow{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.fnrow input{flex:1;min-width:140px;padding:7px 10px}
+.bar2{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--field);font-size:14px}
+.bar2.warn{background:var(--warn-soft)}
+.bar2 span{flex:1;min-width:180px}
+.listwrap{padding:12px 16px}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.row{display:grid;grid-template-columns:30px 28px minmax(0,1fr) auto;align-items:center;gap:6px;height:64px;padding-right:8px;
+  background:var(--row);border:1px solid var(--line);border-radius:4px;position:relative}
+.row:hover{border-color:var(--line-strong)}
+.row.sel{background:var(--accent-soft);border-color:var(--accent)}
+.row.flash{animation:flash 1.1s ease-out}
+@keyframes flash{from{background:var(--accent-soft)}}
+.grip{height:100%;width:30px;border:0;background:none;color:var(--muted);cursor:grab;display:grid;place-items:center;touch-action:none;border-radius:4px 0 0 4px}
+.grip:hover{color:var(--ink)}
+.num{font:500 12px var(--f-mono);color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.row.sel .num{color:var(--accent)}
+.rowmain{display:grid;grid-template-columns:48px minmax(0,1fr);gap:12px;align-items:center;height:100%;min-width:0;
+  border:0;background:none;text-align:left;cursor:pointer;padding:0 4px}
+.rowmain>div{min-width:0}
+.thumb{width:48px;height:48px;border-radius:3px;overflow:hidden;display:grid;place-items:center;border:1px solid var(--line);
+  background:conic-gradient(var(--check1) 25%,var(--check2) 0 50%,var(--check1) 0 75%,var(--check2) 0) 0 0/10px 10px}
+.thumb img{width:100%;height:100%;object-fit:contain}
+.thumb.ph{background:var(--field);color:var(--muted);font:600 13px var(--f-mono)}
+.nm{font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.u{font:400 12px var(--f-mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.flag{font:600 11px var(--f-mono);color:var(--warn);border:1px solid currentColor;background:none;border-radius:3px;padding:4px 7px;cursor:pointer;white-space:nowrap}
+.row.dragging{z-index:5;box-shadow:var(--shadow);border-color:var(--teal);transition:none}
+.row.dragging .grip{cursor:grabbing}
+.is-dragging{user-select:none;-webkit-user-select:none}
+.is-dragging .row:not(.dragging){transition:transform .16s ease}
+.empty{display:grid;place-items:center;gap:10px;text-align:center;padding:48px 16px;color:var(--muted)}
+.empty h3{margin:0;color:var(--ink);font-size:18px;font-stretch:105%}
+.empty p{margin:0;max-width:38ch}
+.right{position:relative}
+.right.dropping::after{content:"Pusti .m3u fajl ovde";position:absolute;inset:0;display:grid;place-items:center;border:2px dashed var(--teal);
+  border-radius:6px;background:color-mix(in srgb,var(--panel) 88%,transparent);font-weight:700;font-size:18px;z-index:10}
+.raw{flex:none;border-top:1px solid var(--line);padding:0 16px}
+.raw summary{cursor:pointer;padding:10px 0;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.raw pre{margin:0 0 14px;max-height:220px;overflow:auto;background:var(--field);border:1px solid var(--line);border-radius:4px;padding:10px 12px;font:400 12px/1.5 var(--f-mono);user-select:text}
+
+/* Dijalog i obaveštenje */
+dialog{border:1px solid var(--line-strong);border-radius:6px;background:var(--panel);color:var(--ink);padding:0;width:min(480px,calc(100% - 32px));box-shadow:var(--shadow)}
+dialog::backdrop{background:rgba(10,15,12,.55)}
+.dbody{padding:18px;display:flex;flex-direction:column;gap:14px}
+.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translate(-50%,16px);opacity:0;pointer-events:none;
+  max-width:min(520px,calc(100% - 32px));background:var(--ink);color:var(--panel);padding:10px 16px;border-radius:4px;font-size:14px;z-index:50;transition:opacity .2s,transform .2s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.err{background:var(--danger);color:#fff}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="brand"><span class="mark">M3U</span><span class="word">Studio</span></div>
+  <div class="bar-right">
+    <span class="status" id="status" role="status"></span>
+    <button class="btn ghost" id="btnSettings" type="button" title="Podešavanje upload-a slika">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+      <span class="lbl hide-sm">Upload slika</span>
+    </button>
+    <button class="btn primary" id="btnSave" type="button">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>
+      <span class="lbl">Sačuvaj plejlistu</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <section class="panel left" aria-labelledby="formTitle">
+    <div class="phead"><h2 id="formTitle">Nova stanica</h2><span class="tag" id="modeTag" hidden></span></div>
+    <form id="form" class="pbody" novalidate>
+      <div class="field">
+        <label for="fName">Naziv stanice</label>
+        <input id="fName" type="text" autocomplete="off" placeholder="LYL Lyon">
+        <p class="err" id="eName" hidden></p>
+      </div>
+      <div class="field">
+        <label for="fUrl">Link ka stanici</label>
+        <input id="fUrl" class="mono" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://radio.lyl.live/hls/aac_hifi.m3u8">
+        <p class="err" id="eUrl" hidden></p>
+      </div>
+      <div class="field posrow" id="posRow" hidden>
+        <label for="fPos">Mesto u listi</label>
+        <input id="fPos" type="number" min="1" inputmode="numeric">
+        <span class="hint" id="posOf"></span>
+      </div>
+
+      <div>
+        <div class="lab" style="margin-bottom:8px">Logo</div>
+        <div class="note" id="hostNote" hidden>
+          <span>Automatski upload još nije podešen. Slika će čekati upload.</span>
+          <button class="btn small" type="button" id="btnHostSetup">Podesi</button>
+        </div>
+        <div class="dz" id="dz" tabindex="0" role="button" aria-label="Izaberi ili prevuci sliku logotipa">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="1.5"/><circle cx="9" cy="10" r="1.5"/><path d="m4 17 5-4.5 4 3.5 3-2.5 4 3.5"/></svg>
+          <div><strong>Prevuci logo ovde</strong></div>
+          <div>ili klikni da izabereš, ili nalepi sliku (Ctrl+V)</div>
+        </div>
+        <input id="logoInput" type="file" accept="image/*" hidden>
+        <div id="cropper" hidden>
+          <div class="stage" id="stageBox"><canvas id="cv" width="600" height="600" aria-label="Pregled logotipa. Prevlačenjem pomeraš sliku."></canvas><span class="px">300 × 300</span></div>
+          <div class="ctl">
+            <div class="r">
+              <label for="zoom">Zum</label>
+              <input id="zoom" type="range" min="0.25" max="4" step="0.005" value="1">
+            </div>
+            <div class="r">
+              <div class="seg" role="group" aria-label="Uklapanje">
+                <button type="button" id="btnFit">Uklopi</button>
+                <button type="button" id="btnFill">Popuni</button>
+              </div>
+              <div class="seg" id="bgSel" role="group" aria-label="Pozadina">
+                <button type="button" data-bg="transparent" aria-pressed="true">Providna</button>
+                <button type="button" data-bg="white" aria-pressed="false">Bela</button>
+                <button type="button" data-bg="black" aria-pressed="false">Crna</button>
+              </div>
+            </div>
+            <div class="r">
+              <button type="button" class="btn small" id="btnDlPng">Preuzmi PNG</button>
+              <button type="button" class="btn small" id="btnRemoveImg">Ukloni sliku</button>
+            </div>
+          </div>
+        </div>
+        <div class="logorow">
+          <span class="lthumb" id="lthumb" aria-hidden="true">logo</span>
+          <div class="field">
+            <label for="fLogo">Link logotipa</label>
+            <div class="inline">
+              <input id="fLogo" class="mono" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://…">
+              <button type="button" class="btn small" id="btnLoadLogo" title="Učitaj sliku sa ovog linka u kropper">Kropuj</button>
+            </div>
+          </div>
+        </div>
+        <p class="hint" id="logoHint" hidden style="margin-top:8px"></p>
+      </div>
+
+      <div class="actions">
+        <button class="btn primary" id="btnSubmit" type="submit"><span class="lbl">Dodaj stanicu</span></button>
+        <button class="btn" type="button" id="btnCancel" hidden>Otkaži</button>
+        <button class="btn" type="button" id="btnDel" hidden><span class="lbl">Obriši</span></button>
+      </div>
+    </form>
+  </section>
+
+  <section class="panel right" id="rightPanel" aria-label="Plejlista">
+    <div class="phead">
+      <h2>Plejlista</h2><span class="tag" id="countTag">0 stanica</span>
+      <span class="grow"></span>
+      <button class="btn small" type="button" id="btnImport">Uvezi .m3u</button>
+      <button class="btn small" type="button" id="btnNew"><span class="lbl">Novo</span></button>
+      <button class="btn small" type="button" id="btnCopy">Kopiraj</button>
+    </div>
+    <input id="importInput" type="file" accept=".m3u,.m3u8,.txt,audio/x-mpegurl,application/vnd.apple.mpegurl" hidden>
+    <div class="fnrow">
+      <label for="fFile">Fajl</label>
+      <input id="fFile" class="mono" type="text" autocomplete="off" spellcheck="false" value="radio.m3u">
+      <span class="tag" id="hdrTag">#EXTM3U</span>
+    </div>
+    <div class="bar2" id="importBar" hidden>
+      <span id="importText"></span>
+      <button class="btn small" type="button" id="btnImpReplace">Zameni listu</button>
+      <button class="btn small" type="button" id="btnImpAppend">Dodaj na kraj</button>
+      <button class="btn small ghost" type="button" id="btnImpCancel">Odustani</button>
+    </div>
+    <div class="bar2 warn" id="saveWarn" hidden>
+      <span id="saveWarnText"></span>
+      <button class="btn small" type="button" id="btnWarnUpload">Uploaduj i sačuvaj</button>
+      <button class="btn small" type="button" id="btnWarnSkip">Sačuvaj bez njih</button>
+      <button class="btn small ghost" type="button" id="btnWarnCancel">Odustani</button>
+    </div>
+    <div class="listwrap" id="listwrap">
+      <ol class="list" id="list" hidden></ol>
+      <div class="empty" id="empty">
+        <h3>Plejlista je prazna</h3>
+        <p>Dodaj prvu stanicu sa leve strane, ili uvezi postojeći .m3u fajl da nastaviš odatle. Fajl možeš i da prevučeš na ovaj panel.</p>
+        <button class="btn" type="button" id="btnEmptyImport">Uvezi postojeći .m3u</button>
+      </div>
+    </div>
+    <details class="raw" id="raw"><summary>M3U tekst</summary><pre id="rawPre"></pre></details>
+  </section>
+</main>
+
+<dialog id="dlg" aria-labelledby="dlgTitle">
+  <form id="dlgForm" class="dbody">
+    <h2 id="dlgTitle" style="font-size:18px">Upload slika</h2>
+    <div class="field">
+      <label for="sProvider">Servis</label>
+      <select id="sProvider">
+        <option value="imgbb">ImgBB (preporučeno)</option>
+        <option value="imgur">Imgur</option>
+      </select>
+    </div>
+    <div class="field" id="rowImgbb">
+      <label for="sImgbb">ImgBB API ključ</label>
+      <input id="sImgbb" class="mono" type="password" autocomplete="off" spellcheck="false">
+      <p class="hint">Besplatan nalog, ključ se uzima na <a href="https://api.imgbb.com/" target="_blank" rel="noopener">api.imgbb.com</a>.</p>
+    </div>
+    <div class="field" id="rowImgur" hidden>
+      <label for="sImgur">Imgur Client ID</label>
+      <input id="sImgur" class="mono" type="password" autocomplete="off" spellcheck="false">
+      <p class="hint">Aplikaciju registruješ na <a href="https://api.imgur.com/oauth2/addclient" target="_blank" rel="noopener">api.imgur.com</a> (bez callback-a, "anonymous usage").</p>
+    </div>
+    <p class="hint">Ključ se čuva samo u ovom pregledaču. Slike se šalju direktno iz stranice na izabrani servis.</p>
+    <div class="actions">
+      <button class="btn primary" type="submit"><span class="lbl">Sačuvaj</span></button>
+      <button class="btn" type="button" id="btnDlgCancel">Zatvori</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const els = {};
+document.querySelectorAll('[id]').forEach(e => { els[e.id] = e; });
+
+const LS_DRAFT = 'm3ustudio.draft.v1', LS_SET = 'm3ustudio.settings.v1';
+const lsGet = k => { try { return localStorage.getItem(k); } catch { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); return true; } catch { return false; } };
+
+const S = { stations: [], header: '#EXTM3U', filename: 'radio.m3u', selectedId: null, dirty: false, busy: false };
+let settings = { provider: 'imgbb', imgbb: '', imgur: '' };
+let uid = 0;
+const newId = () => 's' + Date.now().toString(36) + (uid++);
+
+// <pure>
+function hostOf(u) { try { return new URL(u).hostname; } catch { return u; } }
+function parseAttrs(s) {
+  const out = []; const re = /([^\s=,]+)=(?:"([^"]*)"|([^\s,"]*))/g; let m;
+  while ((m = re.exec(s))) out.push([m[1], m[2] !== undefined ? m[2] : m[3]]);
+  return out;
+}
+function makeStation(c, url) {
+  const attrs = []; let logo = '';
+  for (const [k, v] of c.attrs) { if (k.toLowerCase() === 'tvg-logo') logo = v; else attrs.push([k, v]); }
+  return { id: newId(), name: c.name || hostOf(url), url, dur: c.dur, logo, pending: '', attrs, extras: c.extras };
+}
+function parseM3U(text) {
+  const lines = text.replace(/^﻿/, '').split(/\r?\n/);
+  let header = '#EXTM3U'; const out = []; let cur = null;
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (/^#EXTM3U/i.test(line)) { header = line; continue; }
+    if (/^#EXTINF:/i.test(line)) {
+      const m = line.match(/^#EXTINF:\s*(-?\d+(?:\.\d+)?)((?:\s+[^\s=,]+=(?:"[^"]*"|[^\s,"]*))*)\s*,(.*)$/i);
+      if (m) cur = { dur: m[1], attrs: parseAttrs(m[2]), name: m[3].trim(), extras: [] };
+      else {
+        const m2 = line.match(/^#EXTINF:\s*(-?\d+(?:\.\d+)?)(.*)$/i);
+        cur = { dur: m2 ? m2[1] : '-1', attrs: [], name: (m2 ? m2[2] : '').replace(/^[\s,]+/, '').trim(), extras: [] };
+      }
+      continue;
+    }
+    if (line.startsWith('#')) { if (cur) cur.extras.push(line); continue; }
+    out.push(makeStation(cur || { dur: '-1', attrs: [], name: '', extras: [] }, line));
+    cur = null;
+  }
+  return { header, stations: out };
+}
+function serializeList(header, stations) {
+  const L = [header || '#EXTM3U'];
+  for (const s of stations) {
+    const a = [];
+    if (s.logo) a.push(['tvg-logo', s.logo]);
+    for (const [k, v] of s.attrs) a.push([k, v]);
+    const attrs = a.map(([k, v]) => ` ${k}="${String(v).replace(/"/g, '&quot;')}"`).join('');
+    L.push(`#EXTINF:${s.dur || '-1'}${attrs},${s.name.replace(/[\r\n]+/g, ' ')}`);
+    for (const e of s.extras) L.push(e);
+    L.push(s.url);
+  }
+  return L.join('\n') + '\n';
+}
+// </pure>
+const serialize = () => serializeList(S.header, S.stations);
+
+/* ---------- pomoćne ---------- */
+let toastT;
+function toast(msg, kind) {
+  const t = els.toast; t.textContent = msg; t.className = 'toast show' + (kind === 'err' ? ' err' : '');
+  clearTimeout(toastT); toastT = setTimeout(() => { t.className = 'toast'; }, kind === 'err' ? 6500 : 3200);
+}
+function plural(n) { const a = n % 10, b = n % 100; return (a === 1 && b !== 11) ? 'stanica' : ((a >= 2 && a <= 4 && (b < 10 || b >= 20)) ? 'stanice' : 'stanica'); }
+function initials(n) { const w = n.trim().split(/\s+/).filter(Boolean); return (((w[0] || '?')[0]) + ((w[1] || '')[0] || '')).toUpperCase(); }
+function errText(e) {
+  if (e && e.message === 'NOKEY') return 'nije unet API ključ';
+  if (e instanceof TypeError) return 'nema veze sa servisom (mreža ili blokiran zahtev)';
+  return (e && e.message) || 'nepoznata greška';
+}
+function dataURLtoBlob(u) {
+  const [h, b] = u.split(','); const mime = /:(.*?);/.exec(h)[1]; const bin = atob(b);
+  const a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
+  return new Blob([a], { type: mime });
+}
+function download(blob, name) {
+  const a = document.createElement('a'); const u = URL.createObjectURL(blob);
+  a.href = u; a.download = name; document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 4000);
+}
+function armed(btn, armedText, fn) {
+  const lbl = btn.querySelector('.lbl'); const orig = lbl.textContent; let t;
+  const reset = () => { delete btn.dataset.armed; lbl.textContent = orig; btn.classList.remove('danger'); };
+  btn.addEventListener('click', () => {
+    if (btn.dataset.armed) { clearTimeout(t); reset(); fn(); }
+    else { btn.dataset.armed = '1'; lbl.textContent = armedText; btn.classList.add('danger'); t = setTimeout(reset, 3000); }
+  });
+}
+const find = id => S.stations.find(s => s.id === id);
+const pendingCount = () => S.stations.filter(s => s.pending).length;
+const canUpload = () => !!settings[settings.provider];
+
+/* ---------- stanje i čuvanje nacrta ---------- */
+let draftT;
+function saveDraft() {
+  lsSet(LS_DRAFT, JSON.stringify({ header: S.header, filename: S.filename, stations: S.stations, dirty: S.dirty }));
+}
+function touch() { S.dirty = true; updateUI(); clearTimeout(draftT); draftT = setTimeout(saveDraft, 400); }
+function loadDraft() {
+  const raw = lsGet(LS_DRAFT); if (!raw) return;
+  try {
+    const d = JSON.parse(raw);
+    if (!d || !d.dirty || !Array.isArray(d.stations) || !d.stations.length) return;
+    S.stations = d.stations.map(s => ({ id: newId(), name: String(s.name || ''), url: String(s.url || ''), dur: String(s.dur || '-1'),
+      logo: String(s.logo || ''), pending: String(s.pending || ''), attrs: Array.isArray(s.attrs) ? s.attrs : [], extras: Array.isArray(s.extras) ? s.extras : [] }));
+    S.header = d.header || '#EXTM3U'; S.filename = d.filename || 'radio.m3u'; S.dirty = true;
+    toast('Vraćen je nesačuvan rad (' + S.stations.length + ' ' + plural(S.stations.length) + ').');
+  } catch { /* oštećen nacrt se ignoriše */ }
+}
+function updateUI() {
+  const n = S.stations.length;
+  els.countTag.textContent = n + ' ' + plural(n);
+  els.status.textContent = S.dirty ? 'Nesačuvane izmene' : '';
+  els.status.classList.toggle('dirty', S.dirty);
+  els.btnSave.disabled = n === 0; els.btnCopy.disabled = n === 0;
+  els.hdrTag.textContent = S.header.length > 34 ? S.header.slice(0, 33) + '…' : S.header;
+  els.hostNote.hidden = canUpload();
+  els.posOf.textContent = 'od ' + n;
+  if (els.raw.open) els.rawPre.textContent = serialize();
+}
+els.raw.addEventListener('toggle', updateUI);
+
+/* ---------- lista ---------- */
+const GRIP = '<svg width="12" height="18" viewBox="0 0 12 18" fill="currentColor" aria-hidden="true"><circle cx="3" cy="3" r="1.5"/><circle cx="9" cy="3" r="1.5"/><circle cx="3" cy="9" r="1.5"/><circle cx="9" cy="9" r="1.5"/><circle cx="3" cy="15" r="1.5"/><circle cx="9" cy="15" r="1.5"/></svg>';
+function thumbEl(s) {
+  const th = document.createElement('span'); th.className = 'thumb';
+  const ph = () => { th.textContent = initials(s.name); th.classList.add('ph'); };
+  const src = s.pending || s.logo;
+  if (src) { const im = new Image(); im.alt = ''; im.loading = 'lazy'; im.referrerPolicy = 'no-referrer'; im.onerror = () => { im.remove(); ph(); }; im.src = src; th.append(im); }
+  else ph();
+  return th;
+}
+function renderList(flashId) {
+  const ul = els.list; ul.textContent = '';
+  const pad = Math.max(2, String(S.stations.length).length);
+  S.stations.forEach((s, i) => {
+    const li = document.createElement('li'); li.className = 'row' + (s.id === S.selectedId ? ' sel' : ''); li.dataset.id = s.id;
+    const grip = document.createElement('button'); grip.type = 'button'; grip.className = 'grip'; grip.innerHTML = GRIP;
+    grip.setAttribute('aria-label', 'Premesti stanicu ' + s.name + ' (strelice gore i dole)'); grip.title = 'Prevuci da promeniš mesto';
+    const num = document.createElement('span'); num.className = 'num'; num.textContent = String(i + 1).padStart(pad, '0');
+    const main = document.createElement('button'); main.type = 'button'; main.className = 'rowmain';
+    main.setAttribute('aria-pressed', String(s.id === S.selectedId)); main.title = 'Izmeni stanicu';
+    const info = document.createElement('div');
+    const nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = s.name;
+    const u = document.createElement('div'); u.className = 'u'; u.textContent = s.url;
+    info.append(nm, u); main.append(thumbEl(s), info);
+    li.append(grip, num, main);
+    if (s.pending) {
+      const f = document.createElement('button'); f.type = 'button'; f.className = 'flag retry';
+      f.textContent = 'Upload ↻'; f.title = 'Logo još nije uploadovan. Klikni da pokušaš ponovo.'; li.append(f);
+    }
+    if (s.id === flashId) li.classList.add('flash');
+    ul.append(li);
+  });
+  const none = S.stations.length === 0;
+  ul.hidden = none; els.empty.hidden = !none;
+  if (flashId) { const el = ul.querySelector('.flash'); if (el) el.scrollIntoView({ block: 'nearest' }); }
+  updateUI();
+}
+function markSel() {
+  [...els.list.children].forEach(li => {
+    const on = li.dataset.id === S.selectedId; li.classList.toggle('sel', on);
+    li.querySelector('.rowmain').setAttribute('aria-pressed', String(on));
+  });
+}
+function moveStation(from, to) {
+  const [m] = S.stations.splice(from, 1); S.stations.splice(to, 0, m); return m;
+}
+
+els.list.addEventListener('click', e => {
+  const rt = e.target.closest('.retry'); if (rt) { retryUpload(rt.closest('.row').dataset.id); return; }
+  const m = e.target.closest('.rowmain'); if (m) selectStation(m.closest('.row').dataset.id);
+});
+els.list.addEventListener('keydown', e => {
+  const g = e.target.closest('.grip');
+  if (!g || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+  e.preventDefault();
+  const id = g.closest('.row').dataset.id; const i = S.stations.findIndex(s => s.id === id);
+  const j = i + (e.key === 'ArrowUp' ? -1 : 1);
+  if (j < 0 || j >= S.stations.length) return;
+  moveStation(i, j); touch(); renderList(); els.list.children[j].querySelector('.grip').focus();
+});
+els.list.addEventListener('pointerdown', e => {
+  const g = e.target.closest('.grip'); if (g) startDrag(e, g.closest('.row'));
+});
+
+function startDrag(e, li) {
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  const list = els.list; const rows = [...list.children]; const n = rows.length;
+  if (n < 2) return;
+  e.preventDefault();
+  const from = rows.indexOf(li);
+  const step = rows[1].getBoundingClientRect().top - rows[0].getBoundingClientRect().top;
+  const sc = getComputedStyle(els.listwrap).overflowY === 'auto' ? els.listwrap : null;
+  const scTop = () => sc ? sc.scrollTop : window.scrollY;
+  const startY = e.clientY, startScroll = scTop();
+  let y = e.clientY, to = from, raf = 0;
+  list.classList.add('is-dragging'); li.classList.add('dragging');
+  const apply = () => {
+    const dy = (y - startY) + (scTop() - startScroll);
+    li.style.transform = `translateY(${dy}px)`;
+    to = Math.max(0, Math.min(n - 1, Math.round(from + dy / step)));
+    rows.forEach((r, i) => {
+      if (r === li) return;
+      let t = 0;
+      if (from < to && i > from && i <= to) t = -step; else if (from > to && i < from && i >= to) t = step;
+      r.style.transform = t ? `translateY(${t}px)` : '';
+    });
+  };
+  const tick = () => {
+    const r = sc ? sc.getBoundingClientRect() : { top: 0, bottom: innerHeight };
+    const edge = 56; let v = 0;
+    if (y < r.top + edge) v = -Math.ceil((r.top + edge - y) / 6);
+    else if (y > r.bottom - edge) v = Math.ceil((y - (r.bottom - edge)) / 6);
+    if (v) { if (sc) sc.scrollTop += v; else window.scrollBy(0, v); apply(); }
+    raf = requestAnimationFrame(tick);
+  };
+  const move = ev => { y = ev.clientY; apply(); };
+  const end = () => {
+    cancelAnimationFrame(raf);
+    removeEventListener('pointermove', move); removeEventListener('pointerup', end); removeEventListener('pointercancel', end);
+    rows.forEach(r => { r.style.transform = ''; });
+    li.classList.remove('dragging'); list.classList.remove('is-dragging');
+    if (to !== from) { const m = moveStation(from, to); touch(); renderList(m.id); }
+  };
+  addEventListener('pointermove', move); addEventListener('pointerup', end); addEventListener('pointercancel', end);
+  raf = requestAnimationFrame(tick); apply();
+}
+
+/* ---------- kropper ---------- */
+const crop = { active: false, img: null, w: 1, h: 1, z: 1, zmin: 1, cx: .5, cy: .5, bg: 'transparent', objUrl: null, prevLogo: '' };
+const cvx = els.cv.getContext('2d');
+function drawCrop(ctx, size) {
+  ctx.clearRect(0, 0, size, size);
+  if (crop.bg !== 'transparent') { ctx.fillStyle = crop.bg === 'white' ? '#fff' : '#000'; ctx.fillRect(0, 0, size, size); }
+  const m = Math.max(1 / crop.w, 1 / crop.h);
+  const dw = crop.w * m * crop.z * size, dh = crop.h * m * crop.z * size;
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(crop.img, crop.cx * size - dw / 2, crop.cy * size - dh / 2, dw, dh);
+}
+const drawPreview = () => { if (crop.active) drawCrop(cvx, els.cv.width); };
+function clampCrop() {
+  const m = Math.max(1 / crop.w, 1 / crop.h);
+  const fw = crop.w * m * crop.z, fh = crop.h * m * crop.z;
+  const cl = (c, f) => f >= 1 ? Math.min(f / 2, Math.max(1 - f / 2, c)) : Math.min(1 - f / 2, Math.max(f / 2, c));
+  crop.cx = cl(crop.cx, fw); crop.cy = cl(crop.cy, fh);
+}
+function setZoom(z) {
+  crop.z = Math.min(4, Math.max(crop.zmin, z)); els.zoom.value = crop.z; clampCrop(); drawPreview();
+}
+function showCropper(on) {
+  els.dz.hidden = on; els.cropper.hidden = !on; els.fLogo.disabled = on; els.btnLoadLogo.disabled = on;
+  if (on) { crop.prevLogo = els.fLogo.value; els.fLogo.value = ''; els.fLogo.placeholder = 'Popuniće se posle uploada'; }
+  else { if (crop.prevLogo) els.fLogo.value = crop.prevLogo; crop.prevLogo = ''; els.fLogo.placeholder = 'https://…'; updateLthumb(); }
+}
+function clearCrop() {
+  if (!crop.active) return;
+  crop.active = false; crop.img = null;
+  if (crop.objUrl) { URL.revokeObjectURL(crop.objUrl); crop.objUrl = null; }
+  showCropper(false);
+}
+function cropLoad(src, cors, isObj) {
+  return new Promise((res, rej) => {
+    const im = new Image(); if (cors) im.crossOrigin = 'anonymous'; im.referrerPolicy = 'no-referrer';
+    im.onload = () => {
+      const w = im.naturalWidth || 300, h = im.naturalHeight || 300;
+      const wasActive = crop.active;
+      if (crop.objUrl) URL.revokeObjectURL(crop.objUrl);
+      crop.objUrl = isObj ? src : null;
+      const m = Math.min(w, h) / Math.max(w, h);
+      Object.assign(crop, { active: true, img: im, w, h, cx: .5, cy: .5, zmin: m, z: m });
+      els.zoom.min = String(m); els.zoom.value = String(m);
+      if (!wasActive) showCropper(true);
+      els.logoHint.hidden = true; drawPreview(); res();
+    };
+    im.onerror = () => rej(new Error('LOAD'));
+    im.src = src;
+  });
+}
+function takeImageFile(file) {
+  if (!file || !file.type.startsWith('image/')) { toast('To nije slika.', 'err'); return; }
+  const u = URL.createObjectURL(file);
+  cropLoad(u, false, true).catch(() => { URL.revokeObjectURL(u); toast('Ovu sliku nije moguće učitati.', 'err'); });
+}
+async function loadLogoFromUrl(u) {
+  u = u.trim(); if (!u) return;
+  els.logoHint.hidden = false; els.logoHint.textContent = 'Učitavam sliku…';
+  try { await cropLoad(u, true, false); }
+  catch {
+    els.logoHint.textContent = 'Taj sajt ne dozvoljava da se slika učita u pregledač. Sačuvaj je na računar (desni klik, Save image as) pa je prevuci gore. Link možeš i da ostaviš ovakav kakav jeste.';
+  }
+}
+function exportCrop() {
+  const c = document.createElement('canvas'); c.width = c.height = 300;
+  drawCrop(c.getContext('2d'), 300);
+  const dataUrl = c.toDataURL('image/png');
+  return new Promise(res => c.toBlob(b => res({ blob: b || dataURLtoBlob(dataUrl), dataUrl }), 'image/png'));
+}
+function updateLthumb() {
+  const t = els.lthumb; t.textContent = '';
+  const sel = S.selectedId ? find(S.selectedId) : null;
+  const src = (sel && sel.pending) || els.fLogo.value.trim();
+  if (!src) { t.textContent = 'logo'; return; }
+  const im = new Image(); im.alt = ''; im.referrerPolicy = 'no-referrer';
+  im.onerror = () => { t.textContent = '?'; }; im.src = src; t.append(im);
+}
+
+els.cv.addEventListener('pointerdown', e => {
+  if (!crop.active) return; els.cv.setPointerCapture(e.pointerId);
+  els.cv._pan = { x: e.clientX, y: e.clientY }; els.stageBox.classList.add('grab');
+});
+els.cv.addEventListener('pointermove', e => {
+  const p = els.cv._pan; if (!p) return;
+  const r = els.cv.getBoundingClientRect();
+  crop.cx += (e.clientX - p.x) / r.width; crop.cy += (e.clientY - p.y) / r.height;
+  els.cv._pan = { x: e.clientX, y: e.clientY }; clampCrop(); drawPreview();
+});
+['pointerup', 'pointercancel'].forEach(t => els.cv.addEventListener(t, () => { els.cv._pan = null; els.stageBox.classList.remove('grab'); }));
+els.cv.addEventListener('wheel', e => { if (!crop.active) return; e.preventDefault(); setZoom(crop.z * Math.exp(-e.deltaY * 0.0015)); }, { passive: false });
+els.zoom.addEventListener('input', () => setZoom(parseFloat(els.zoom.value)));
+els.btnFit.addEventListener('click', () => { crop.cx = crop.cy = .5; setZoom(crop.zmin); });
+els.btnFill.addEventListener('click', () => { crop.cx = crop.cy = .5; setZoom(1); });
+els.bgSel.addEventListener('click', e => {
+  const b = e.target.closest('button[data-bg]'); if (!b) return;
+  crop.bg = b.dataset.bg;
+  els.bgSel.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  drawPreview();
+});
+els.btnRemoveImg.addEventListener('click', clearCrop);
+els.btnDlPng.addEventListener('click', async () => {
+  if (!crop.active) return; const out = await exportCrop();
+  const slug = (els.fName.value.trim() || 'logo').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'logo';
+  download(out.blob, slug + '-300.png');
+});
+els.btnLoadLogo.addEventListener('click', () => loadLogoFromUrl(els.fLogo.value));
+els.fLogo.addEventListener('change', updateLthumb);
+
+function handleImgDrop(e) {
+  e.preventDefault(); els.dz.classList.remove('over');
+  const f = [...e.dataTransfer.files].find(x => x.type.startsWith('image/'));
+  if (f) { takeImageFile(f); return; }
+  const u = (e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain') || '').split('\n')[0].trim();
+  if (/^https?:\/\//i.test(u)) loadLogoFromUrl(u); else toast('Prevuci sliku ili klikni da je izabereš.', 'err');
+}
+[els.dz, els.cropper].forEach(z => {
+  z.addEventListener('dragenter', e => { e.preventDefault(); els.dz.classList.add('over'); });
+  z.addEventListener('dragover', e => { e.preventDefault(); els.dz.classList.add('over'); });
+  z.addEventListener('dragleave', () => els.dz.classList.remove('over'));
+  z.addEventListener('drop', handleImgDrop);
+});
+els.dz.addEventListener('click', () => els.logoInput.click());
+els.dz.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); els.logoInput.click(); } });
+els.logoInput.addEventListener('change', () => { takeImageFile(els.logoInput.files[0]); els.logoInput.value = ''; });
+document.addEventListener('paste', e => {
+  if (els.dlg.open) return;
+  const it = [...(e.clipboardData ? e.clipboardData.items : [])].find(i => i.kind === 'file' && i.type.startsWith('image/'));
+  if (it) { e.preventDefault(); takeImageFile(it.getAsFile()); }
+});
+
+/* ---------- upload ---------- */
+async function uploadLogo(blob) {
+  const p = settings.provider, key = settings[p];
+  if (!key) throw new Error('NOKEY');
+  const fd = new FormData();
+  if (p === 'imgbb') {
+    fd.append('image', blob, 'logo.png');
+    const r = await fetch('https://api.imgbb.com/1/upload?key=' + encodeURIComponent(key), { method: 'POST', body: fd });
+    const j = await r.json().catch(() => null);
+    if (!r.ok || !j || !j.success) throw new Error((j && j.error && j.error.message) || ('HTTP ' + r.status));
+    return j.data.url;
+  }
+  fd.append('image', blob); fd.append('type', 'file');
+  const r = await fetch('https://api.imgur.com/3/image', { method: 'POST', headers: { Authorization: 'Client-ID ' + key }, body: fd });
+  const j = await r.json().catch(() => null);
+  if (!r.ok || !j || !j.success) throw new Error((j && j.data && j.data.error) || ('HTTP ' + r.status));
+  return j.data.link;
+}
+async function retryUpload(id) {
+  const s = find(id); if (!s || !s.pending) return;
+  if (!canUpload()) { openSettings(); return; }
+  try {
+    s.logo = await uploadLogo(dataURLtoBlob(s.pending)); s.pending = '';
+    touch(); renderList(); if (S.selectedId === id) { els.fLogo.value = s.logo; updateLthumb(); }
+    toast('Logo je uploadovan: ' + s.name);
+  } catch (e) { toast('Upload nije uspeo: ' + errText(e), 'err'); }
+}
+async function uploadAllPending() {
+  if (!canUpload()) { openSettings(); return false; }
+  for (const s of S.stations.filter(x => x.pending)) {
+    try { s.logo = await uploadLogo(dataURLtoBlob(s.pending)); s.pending = ''; touch(); renderList(); }
+    catch (e) { toast('Upload nije uspeo za ' + s.name + ': ' + errText(e), 'err'); return false; }
+  }
+  return true;
+}
+
+/* ---------- forma ---------- */
+function setErr(id, msg) {
+  const p = els['e' + id], input = els['f' + id];
+  p.hidden = !msg; p.textContent = msg || ''; input.setAttribute('aria-invalid', msg ? 'true' : 'false');
+}
+function fillForm(s) {
+  clearCrop();
+  els.fName.value = s ? s.name : ''; els.fUrl.value = s ? s.url : ''; els.fLogo.value = s ? s.logo : '';
+  els.logoHint.hidden = true; setErr('Name', ''); setErr('Url', '');
+  const edit = !!s;
+  els.formTitle.textContent = edit ? 'Izmena stanice' : 'Nova stanica';
+  els.modeTag.hidden = !edit;
+  if (edit) { els.modeTag.textContent = '#' + (S.stations.indexOf(s) + 1); els.fPos.value = S.stations.indexOf(s) + 1; els.fPos.max = S.stations.length; }
+  els.posRow.hidden = !edit; els.btnCancel.hidden = !edit; els.btnDel.hidden = !edit;
+  els.btnSubmit.querySelector('.lbl').textContent = edit ? 'Sačuvaj izmene' : 'Dodaj stanicu';
+  updateLthumb(); updateUI();
+}
+function selectStation(id) {
+  const s = find(id); if (!s) return;
+  S.selectedId = id; fillForm(s); markSel();
+  if (innerWidth <= 860) els.form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  els.fName.focus({ preventScroll: true });
+}
+function deselect() { S.selectedId = null; fillForm(null); markSel(); }
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && S.selectedId && !els.dlg.open && !e.defaultPrevented) deselect();
+});
+els.btnCancel.addEventListener('click', deselect);
+armed(els.btnDel, 'Potvrdi brisanje', () => {
+  const i = S.stations.findIndex(s => s.id === S.selectedId); if (i < 0) return;
+  const [r] = S.stations.splice(i, 1); S.selectedId = null; fillForm(null); touch(); renderList(); toast('Obrisano: ' + r.name);
+});
+
+els.form.addEventListener('submit', async e => {
+  e.preventDefault(); if (S.busy) return;
+  const name = els.fName.value.trim(), url = els.fUrl.value.trim();
+  const urlOk = /^[a-z][a-z0-9+.-]*:\/\/\S+$/i.test(url);
+  setErr('Name', name ? '' : 'Upiši naziv stanice.');
+  setErr('Url', !url ? 'Nalepi link ka stanici.' : (urlOk ? '' : 'Link treba da počinje sa http:// ili https://'));
+  if (!name) { els.fName.focus(); return; }
+  if (!urlOk) { els.fUrl.focus(); return; }
+
+  S.busy = true; els.btnSubmit.disabled = true;
+  const lbl = els.btnSubmit.querySelector('.lbl'); const prevLbl = lbl.textContent;
+  const editing = S.selectedId ? find(S.selectedId) : null;
+  const st = editing || { id: newId(), name: '', url: '', dur: '-1', logo: '', pending: '', attrs: [], extras: [] };
+  st.name = name; st.url = url;
+  let upErr = null;
+  try {
+    if (crop.active) {
+      lbl.textContent = canUpload() ? 'Šaljem logo…' : prevLbl;
+      const out = await exportCrop();
+      if (canUpload()) {
+        try { st.logo = await uploadLogo(out.blob); st.pending = ''; }
+        catch (err) { upErr = err; st.pending = out.dataUrl; }
+      } else { st.pending = out.dataUrl; upErr = new Error('NOKEY'); }
+    } else {
+      st.logo = els.fLogo.value.trim(); if (st.logo) st.pending = '';
+    }
+    if (editing) {
+      const cur = S.stations.indexOf(st);
+      const pos = Math.max(1, Math.min(S.stations.length, parseInt(els.fPos.value, 10) || cur + 1)) - 1;
+      if (pos !== cur) moveStation(cur, pos);
+    } else S.stations.push(st);
+    S.selectedId = null; fillForm(null); touch(); renderList(st.id);
+    if (upErr) {
+      toast(upErr.message === 'NOKEY' ? 'Stanica je sačuvana. Logo čeka upload dok ne podesiš servis za slike.'
+        : 'Stanica je sačuvana, ali upload logoa nije uspeo: ' + errText(upErr), 'err');
+    } else toast((editing ? 'Izmenjeno: ' : 'Dodato: ') + name);
+    els.fName.focus({ preventScroll: true });
+  } finally {
+    S.busy = false; els.btnSubmit.disabled = false; els.btnSubmit.querySelector('.lbl').textContent = S.selectedId ? 'Sačuvaj izmene' : 'Dodaj stanicu';
+  }
+});
+
+/* ---------- uvoz, čuvanje, kopiranje ---------- */
+let pendingImport = null;
+function importFile(file) {
+  if (file.type.startsWith('image/')) { toast('Ovde ide .m3u fajl. Slike prevuci u polje za logo.', 'err'); return; }
+  file.text().then(t => {
+    const r = parseM3U(t);
+    if (!r.stations.length) { toast('U fajlu nema nijedne stanice.', 'err'); return; }
+    if (S.stations.length) {
+      pendingImport = { r, name: file.name };
+      els.importText.textContent = file.name + ': ' + r.stations.length + ' ' + plural(r.stations.length) + '. Šta da uradim sa njima?';
+      els.importBar.hidden = false;
+    } else applyImport(r, file.name, 'replace');
+  }).catch(() => toast('Fajl nije moguće pročitati.', 'err'));
+}
+function applyImport(r, name, mode) {
+  if (mode === 'replace') { S.stations = r.stations; S.header = r.header; S.filename = name; els.fFile.value = name; S.dirty = false; }
+  else { S.stations.push(...r.stations); S.dirty = true; }
+  S.selectedId = null; fillForm(null); els.importBar.hidden = true; pendingImport = null;
+  renderList(); saveDraft();
+  toast((mode === 'replace' ? 'Uvezeno: ' : 'Dodato na kraj: ') + r.stations.length + ' ' + plural(r.stations.length));
+}
+els.btnImport.addEventListener('click', () => els.importInput.click());
+els.btnEmptyImport.addEventListener('click', () => els.importInput.click());
+els.importInput.addEventListener('change', () => { if (els.importInput.files[0]) importFile(els.importInput.files[0]); els.importInput.value = ''; });
+els.btnImpReplace.addEventListener('click', () => pendingImport && applyImport(pendingImport.r, pendingImport.name, 'replace'));
+els.btnImpAppend.addEventListener('click', () => pendingImport && applyImport(pendingImport.r, pendingImport.name, 'append'));
+els.btnImpCancel.addEventListener('click', () => { pendingImport = null; els.importBar.hidden = true; });
+
+(() => {
+  const rp = els.rightPanel; let depth = 0;
+  const hasFiles = e => [...(e.dataTransfer ? e.dataTransfer.types : [])].includes('Files');
+  rp.addEventListener('dragenter', e => { if (hasFiles(e)) { e.preventDefault(); depth++; rp.classList.add('dropping'); } });
+  rp.addEventListener('dragover', e => { if (hasFiles(e)) e.preventDefault(); });
+  rp.addEventListener('dragleave', () => { depth = Math.max(0, depth - 1); if (!depth) rp.classList.remove('dropping'); });
+  rp.addEventListener('drop', e => { e.preventDefault(); depth = 0; rp.classList.remove('dropping'); const f = e.dataTransfer.files[0]; if (f) importFile(f); });
+  addEventListener('dragover', e => e.preventDefault());
+  addEventListener('drop', e => e.preventDefault());
+})();
+
+armed(els.btnNew, 'Obrisati sve?', () => {
+  S.stations = []; S.header = '#EXTM3U'; S.filename = 'radio.m3u'; els.fFile.value = S.filename; S.selectedId = null; S.dirty = false;
+  fillForm(null); renderList(); saveDraft(); els.saveWarn.hidden = true; els.importBar.hidden = true;
+});
+els.fFile.addEventListener('input', () => { S.filename = els.fFile.value; });
+
+function cleanName(n) {
+  n = (n || '').trim().replace(/[\\/:*?"<>|]+/g, '-'); if (!n) n = 'radio';
+  return /\.m3u8?$/i.test(n) ? n : n + '.m3u';
+}
+function doSave() {
+  const name = cleanName(S.filename); S.filename = name; els.fFile.value = name;
+  download(new Blob([serialize()], { type: 'audio/x-mpegurl;charset=utf-8' }), name);
+  S.dirty = false; saveDraft(); updateUI(); els.saveWarn.hidden = true; toast('Sačuvano kao ' + name);
+}
+els.btnSave.addEventListener('click', () => {
+  const p = pendingCount();
+  if (p) {
+    els.saveWarnText.textContent = p + ' ' + (p === 1 ? 'logo još nije uploadovan' : 'logotipa još nije uploadovano') + '. Bez uploada neće biti u fajlu.';
+    els.saveWarn.hidden = false; return;
+  }
+  doSave();
+});
+els.btnWarnUpload.addEventListener('click', async () => {
+  els.btnWarnUpload.disabled = true;
+  try { if (await uploadAllPending()) doSave(); } finally { els.btnWarnUpload.disabled = false; }
+});
+els.btnWarnSkip.addEventListener('click', doSave);
+els.btnWarnCancel.addEventListener('click', () => { els.saveWarn.hidden = true; });
+els.btnCopy.addEventListener('click', async () => {
+  const t = serialize();
+  try { await navigator.clipboard.writeText(t); toast('M3U tekst je kopiran.'); }
+  catch {
+    const ta = document.createElement('textarea'); ta.value = t; ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.append(ta); ta.select(); let ok = false; try { ok = document.execCommand('copy'); } catch { /* ignore */ }
+    ta.remove(); toast(ok ? 'M3U tekst je kopiran.' : 'Kopiranje nije uspelo.', ok ? undefined : 'err');
+  }
+});
+addEventListener('beforeunload', e => { if (S.dirty && S.stations.length) { e.preventDefault(); e.returnValue = ''; } });
+
+/* ---------- podešavanje upload-a ---------- */
+function syncDlg() { const imgur = els.sProvider.value === 'imgur'; els.rowImgbb.hidden = imgur; els.rowImgur.hidden = !imgur; }
+function openSettings() {
+  els.sProvider.value = settings.provider; els.sImgbb.value = settings.imgbb; els.sImgur.value = settings.imgur; syncDlg(); els.dlg.showModal();
+}
+els.sProvider.addEventListener('change', syncDlg);
+els.btnSettings.addEventListener('click', openSettings);
+els.btnHostSetup.addEventListener('click', openSettings);
+els.btnDlgCancel.addEventListener('click', () => els.dlg.close());
+els.dlgForm.addEventListener('submit', e => {
+  e.preventDefault();
+  settings = { provider: els.sProvider.value, imgbb: els.sImgbb.value.trim(), imgur: els.sImgur.value.trim() };
+  lsSet(LS_SET, JSON.stringify(settings)); els.dlg.close(); updateUI(); toast('Podešavanje je sačuvano.');
+});
+
+/* ---------- start ---------- */
+try { const r = JSON.parse(lsGet(LS_SET) || 'null'); if (r && typeof r === 'object') settings = { ...settings, ...r }; } catch { /* podrazumevano */ }
+loadDraft();
+els.fFile.value = S.filename;
+fillForm(null);
+renderList();
+})();
+</script>
+</body>
+</html>
