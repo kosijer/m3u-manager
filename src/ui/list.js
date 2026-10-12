@@ -1,11 +1,14 @@
-import { moveStation, state } from '../state.js';
+import { findStation, moveStation, state } from '../state.js';
 import { initials } from '../lib/text.js';
-import { els, loadThumb } from './dom.js';
+import { onPlayerChange, playerState, stop as stopPlayer, toggle as togglePlayer } from '../services/player.js';
+import { els, loadThumb, toast } from './dom.js';
 import { selectStation } from './form.js';
 import { markDirty, updateUI } from './status.js';
 import { isUploading, retryUpload } from './uploads.js';
 
 const GRIP_SVG = '<svg width="12" height="18" viewBox="0 0 12 18" fill="currentColor" aria-hidden="true"><circle cx="3" cy="3" r="1.5"/><circle cx="9" cy="3" r="1.5"/><circle cx="3" cy="9" r="1.5"/><circle cx="9" cy="9" r="1.5"/><circle cx="3" cy="15" r="1.5"/><circle cx="9" cy="15" r="1.5"/></svg>';
+const PLAY_SVG = '<svg class="i-play" width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true"><path d="M3 1.8v10.4a.6.6 0 0 0 .9.5l8.4-5.2a.6.6 0 0 0 0-1L3.9 1.3a.6.6 0 0 0-.9.5Z"/></svg>';
+const STOP_SVG = '<svg class="i-stop" width="12" height="12" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><rect x="1" y="1" width="10" height="10" rx="1.5"/></svg>';
 
 function el(tag, className, text) {
   const e = document.createElement(tag);
@@ -42,19 +45,52 @@ function rowEl(s, index, pad, flashId) {
   info.append(el('div', 'nm', s.name), el('div', 'u', s.url));
   main.append(thumbEl(s), info);
 
-  li.append(grip, el('span', 'num', String(index + 1).padStart(pad, '0')), main);
-
+  const actions = el('div', 'rowact');
   if (s.pending) {
     const flag = el('button', 'flag retry', isUploading(s.id) ? 'Šaljem…' : 'Upload ↻');
     flag.type = 'button';
     flag.disabled = isUploading(s.id);
     flag.title = 'Logo još nije uploadovan. Klikni da pokušaš ponovo.';
-    li.append(flag);
+    actions.append(flag);
   }
+  const play = el('button', 'play');
+  play.type = 'button';
+  play.innerHTML = PLAY_SVG + STOP_SVG;
+  setPlayButton(play, s, playerState());
+  actions.append(play);
+
+  li.append(grip, el('span', 'num', String(index + 1).padStart(pad, '0')), main, actions);
   return li;
 }
 
+function setPlayButton(btn, station, player) {
+  const mine = player.id === station.id;
+  const st = mine ? player.status : 'idle';
+  btn.dataset.state = st;
+  btn.setAttribute('aria-pressed', String(mine));
+  const label = st === 'idle' ? 'Preslušaj ' : st === 'loading' ? 'Učitavam, klikni da prekineš: ' : 'Zaustavi ';
+  btn.setAttribute('aria-label', label + station.name);
+  btn.title = st === 'idle' ? 'Preslušaj stanicu' : 'Zaustavi';
+}
+
+function updatePlayButtons(player) {
+  for (const li of els.list.children) {
+    const s = findStation(li.dataset.id);
+    const btn = li.querySelector('.play');
+    if (s && btn) setPlayButton(btn, s, player);
+  }
+}
+
+/** Zaustavlja preslušavanje ako je stanica obrisana ili joj je promenjen link. */
+function syncPlayer() {
+  const p = playerState();
+  if (!p.id) return;
+  const s = findStation(p.id);
+  if (!s || s.url !== p.url) stopPlayer();
+}
+
 export function renderList(flashId) {
+  syncPlayer();
   const ul = els.list;
   const pad = Math.max(2, String(state.stations.length).length);
   ul.replaceChildren(...state.stations.map((s, i) => rowEl(s, i, pad, flashId)));
@@ -151,6 +187,12 @@ export function initList() {
   els.list.addEventListener('click', e => {
     const retry = e.target.closest('.retry');
     if (retry) { retryUpload(retry.closest('.row').dataset.id); return; }
+    const play = e.target.closest('.play');
+    if (play) {
+      const s = findStation(play.closest('.row').dataset.id);
+      if (s) togglePlayer(s.id, s.url);
+      return;
+    }
     const main = e.target.closest('.rowmain');
     if (main) selectStation(main.closest('.row').dataset.id);
   });
@@ -172,5 +214,13 @@ export function initList() {
   els.list.addEventListener('pointerdown', e => {
     const grip = e.target.closest('.grip');
     if (grip) startDrag(e, grip.closest('.row'));
+  });
+
+  onPlayerChange(e => {
+    updatePlayButtons(e);
+    if (e.error) {
+      const s = findStation(e.failedId);
+      toast((s ? s.name + ': ' : '') + e.error, 'err');
+    }
   });
 }

@@ -69,7 +69,7 @@ main{padding:var(--gutter);display:grid;gap:var(--gutter);grid-template-columns:
 .btn.ghost:hover{border-color:var(--line-strong)}
 .btn.danger{color:var(--danger);border-color:var(--danger)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-.btn:focus-visible,input:focus-visible,select:focus-visible,.dz:focus-visible,.grip:focus-visible,.rowmain:focus-visible,.flag:focus-visible,summary:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.btn:focus-visible,input:focus-visible,select:focus-visible,.dz:focus-visible,.grip:focus-visible,.rowmain:focus-visible,.flag:focus-visible,.play:focus-visible,summary:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 @media (max-width:560px){.hide-sm{display:none}}
 
 /* Polja */
@@ -143,6 +143,17 @@ input[type=range]{flex:1;min-width:120px;accent-color:var(--accent);padding:0}
 .u{font:400 12px var(--f-mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .flag{font:600 11px var(--f-mono);color:var(--warn);border:1px solid currentColor;background:none;border-radius:3px;padding:4px 7px;cursor:pointer;white-space:nowrap}
 .flag:disabled{opacity:.6;cursor:progress}
+.rowact{display:flex;align-items:center;gap:8px}
+.play{position:relative;width:36px;height:36px;flex:none;display:grid;place-items:center;border:1px solid var(--line-strong);border-radius:50%;
+  background:none;color:var(--ink);cursor:pointer;padding:0}
+.play:hover{border-color:var(--ink)}
+.play .i-play{margin-left:2px}
+.play .i-stop,.play:not([data-state=idle]) .i-play{display:none}
+.play:not([data-state=idle]) .i-stop{display:block}
+.play[data-state=playing]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.play[data-state=loading]{border-color:var(--line)}
+.play[data-state=loading]::after{content:"";position:absolute;inset:-1px;border-radius:50%;border:2px solid transparent;border-top-color:var(--accent);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 .row.dragging{z-index:5;box-shadow:var(--shadow);border-color:var(--teal);transition:none}
 .row.dragging .grip{cursor:grabbing}
 .is-dragging{user-select:none;-webkit-user-select:none}
