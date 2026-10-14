@@ -2,6 +2,8 @@
 name = "m3u-now-playing"
 main = "src/index.js"
 compatibility_date = "2026-06-01"
+workers_dev = true
+preview_urls = false
 
 [vars]
 # Sajtovi kojima je dozvoljeno da pitaju Worker (zarezom razdvojeni, bez "/" na kraju).

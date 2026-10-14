@@ -187,8 +187,8 @@ input[type=range]{flex:1;min-width:120px;accent-color:var(--accent);padding:0}
 .np-status.live{color:var(--accent)}
 .np-status.live::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;margin-right:7px;vertical-align:1px;animation:pulse 1.4s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.25}}
-.np-status.song{flex:0 1 auto;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:600 13px var(--f-ui);letter-spacing:0;text-transform:none}
-.np-name{flex:none;max-width:45%;min-width:0;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.np-status.song{flex:0 1 auto;min-width:40px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:600 13px var(--f-ui);letter-spacing:0;text-transform:none}
+.np-name{flex:none;max-width:260px;min-width:0;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (hover:none){
   .np-ctl{opacity:1}
 }
