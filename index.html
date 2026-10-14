@@ -89,21 +89,24 @@
     </form>
 
     <div class="np" id="np" role="region" aria-label="Preslušavanje">
-      <div class="np-stage">
-        <div class="np-cover" id="npCover">
-          <div class="np-art" id="npArt"></div>
-          <div class="np-ctl" role="group" aria-label="Kontrole preslušavanja">
-            <button class="np-btn" type="button" id="npPrev" aria-label="Prethodna stanica" title="Prethodna stanica (←)"></button>
-            <button class="np-btn np-main" type="button" id="npPlay" data-state="idle"></button>
-            <button class="np-btn" type="button" id="npNext" aria-label="Sledeća stanica" title="Sledeća stanica (→)"></button>
-          </div>
-        </div>
-      </div>
       <div class="np-meta">
         <div class="np-status" id="npStatus" aria-live="polite"></div>
         <div class="np-name" id="npName"></div>
         <div class="np-url" id="npUrl"></div>
-        <div class="np-keys"><kbd>Razmak</kbd> pusti/zaustavi <kbd>←</kbd><kbd>→</kbd> prethodna/sledeća</div>
+      </div>
+      <div class="np-stage">
+        <div class="np-cover" id="npCover">
+          <div class="np-art" id="npArt"></div>
+          <div class="np-ctl">
+            <div class="np-fs-name" id="npFsName"></div>
+            <div class="np-btns" role="group" aria-label="Kontrole preslušavanja">
+              <button class="np-btn" type="button" id="npPrev" aria-label="Prethodna stanica" title="Prethodna stanica (←)"></button>
+              <button class="np-btn np-main" type="button" id="npPlay" data-state="idle"></button>
+              <button class="np-btn" type="button" id="npNext" aria-label="Sledeća stanica" title="Sledeća stanica (→)"></button>
+            </div>
+            <button class="np-btn np-small" type="button" id="npFull"></button>
+          </div>
+        </div>
       </div>
     </div>
   </section>

@@ -10,7 +10,7 @@ Alat za pravljenje i uređivanje `.m3u` plejlisti internet radio stanica. Stati�
 - **Kropper za logo:** slika se prevuče, izabere ili nalepi (Ctrl+V). Pomera se prevlačenjem, zumira točkićem ili klizačem. Izlaz je uvek PNG 600x600, sa providnom, belom ili crnom pozadinom. Dugme "Kropuj" pored polja za link učitava sliku sa linka (radi samo ako sajt dozvoljava CORS).
 - **Automatski upload loga** na ImgBB (ili Imgur) posle potvrde. Dobijeni link ide u `tvg-logo`.
 - **Lista stanica** sa prevlačenjem za promenu redosleda. Ručka ima i tastaturu (strelice gore i dole kad je fokusirana). Klik na stanicu otvara izmenu, sa poljem "Mesto u listi" i brisanjem.
-- **Preslušavanje:** dugme ▶ na svakoj stanici pušta stream (jedna stanica u isto vreme). Ispod forme je veliki pregled trenutne stanice; kad se pređe mišem preko loga pojave se kontrole prethodna / pusti-zaustavi / sledeća. Tastatura: **razmak** pušta i zaustavlja, **← / →** prelaze na prethodnu i sledeću stanicu (dok je kursor van polja za unos). Rade i multimedijalni tasteri na tastaturi (play/pause, next, previous).
+- **Preslušavanje:** dugme ▶ na svakoj stanici pušta stream (jedna stanica u isto vreme). Ispod forme je veliki pregled trenutne stanice, poravnat uz dno ekrana; kad se pređe mišem preko loga, uz donju ivicu slike se pojave kontrole prethodna / pusti-zaustavi / sledeća i dugme za ceo ekran. Na celom ekranu se vidi samo logo, a kontrole se pojave kad se pomeri miš. Tastatura: **razmak** pušta i zaustavlja, **← / →** prelaze na prethodnu i sledeću stanicu, **F** uključuje i isključuje ceo ekran, **Esc** izlazi (sve dok je kursor van polja za unos). Rade i multimedijalni tasteri na tastaturi (play/pause, next, previous).
 - **Poruke** (greške, potvrde) se pojavljuju kao snackbar u donjem desnom uglu; klik ga zatvara. HLS (`.m3u8`) radi i u Chrome-u i Firefox-u preko `hls.js`, koji se učitava tek kad zatreba. Na https sajtu (GitHub Pages) browser blokira `http://` streamove, a za HLS server mora da dozvoli CORS.
 - **Uvoz postojećeg `.m3u`** (dugme ili prevlačenje fajla na desni panel). Dodatni atributi (`tvg-id`, `group-title`...) i `#EXTVLCOPT` linije se čuvaju pri izvozu.
 - **Čuvanje:** dugme "Sačuvaj plejlistu" preuzima fajl. Postoje i kopiranje teksta i pregled M3U teksta.
@@ -22,6 +22,23 @@ Izlazni format:
 #EXTM3U
 #EXTINF:-1 tvg-logo="https://i.ibb.co/xxxx/logo.png",LYL Lyon
 https://radio.lyl.live/hls/aac_hifi.m3u8
+```
+
+## Stanice za probu
+
+| Stanica | Link | Format |
+|---|---|---|
+| LYL Lyon | `https://radio.lyl.live/hls/aac_hifi.m3u8` | HLS (AAC) |
+| Radio Paradise | `https://stream.radioparadise.com/mp3-128` | MP3 128 kbps |
+
+Kao `.m3u` fajl (sačuvaj kao `proba.m3u` i uvezi ga u aplikaciju):
+
+```
+#EXTM3U
+#EXTINF:-1,LYL Lyon
+https://radio.lyl.live/hls/aac_hifi.m3u8
+#EXTINF:-1,Radio Paradise
+https://stream.radioparadise.com/mp3-128
 ```
 
 ## Pokretanje

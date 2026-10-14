@@ -2,7 +2,7 @@ import { initials } from '../lib/text.js';
 import { findStation, state } from '../state.js';
 import { onPlayerChange, play, playerState, stop, toggle } from '../services/player.js';
 import { els, loadThumb } from './dom.js';
-import { nextIcon, pauseIcon, playIcon, prevIcon } from './icons.js';
+import { enterFullscreenIcon, exitFullscreenIcon, nextIcon, pauseIcon, playIcon, prevIcon } from './icons.js';
 
 /**
  * Veliki pregled ispod forme. Prikazuje stanicu koja svira; dok ništa ne svira,
@@ -98,9 +98,54 @@ export function renderNowPlaying() {
     : status === 'loading' ? 'Učitavam…'
     : `Stanica ${state.stations.indexOf(s) + 1} od ${n}`;
   els.npName.textContent = s?.name ?? '';
+  els.npFsName.textContent = s?.name ?? '';
   els.npUrl.textContent = s?.url ?? '';
 
+  if (!s && fullscreen) setFullscreenUI(false);
   updateMediaSession(s, status);
+}
+
+/* ---------- ceo ekran ---------- */
+
+const AWAKE_MS = 2500;
+let fullscreen = false;
+let awakeTimer;
+
+/** Pokaže kontrole i sakrije ih posle AWAKE_MS bez pomeranja miša (osim dok je miš na dugmetu). */
+function wake() {
+  els.npCover.classList.add('awake');
+  clearTimeout(awakeTimer);
+  awakeTimer = setTimeout(() => {
+    if (els.npCover.querySelector('.np-btn:hover')) wake();
+    else els.npCover.classList.remove('awake');
+  }, AWAKE_MS);
+}
+
+function setFullscreenUI(on) {
+  fullscreen = on;
+  els.np.classList.toggle('is-fs', on);
+  els.npCover.classList.toggle('is-fs', on);
+  els.npFull.innerHTML = on ? exitFullscreenIcon(18) : enterFullscreenIcon(14);
+  const label = on ? 'Izađi iz celog ekrana' : 'Ceo ekran';
+  els.npFull.setAttribute('aria-label', label);
+  els.npFull.title = `${label} (F)`;
+  if (on) wake();
+  else {
+    clearTimeout(awakeTimer);
+    els.npCover.classList.remove('awake');
+  }
+}
+
+export async function toggleFullscreen() {
+  if (fullscreen) {
+    setFullscreenUI(false);
+    if (document.fullscreenElement) await document.exitFullscreen().catch(() => {});
+    return;
+  }
+  if (!currentStation()) return;
+  setFullscreenUI(true);
+  // Bez Fullscreen API-ja (npr. iPhone) ostaje prikaz preko celog prozora.
+  await document.documentElement.requestFullscreen?.().catch(() => {});
 }
 
 /** Kratko pokaže kontrole preko slike (kad se koristi tastatura). */
@@ -117,9 +162,16 @@ const KEY_ACTIONS = {
   MediaTrackNext: nextStation,
   ArrowLeft: prevStation,
   MediaTrackPrevious: prevStation,
+  f: toggleFullscreen,
+  F: toggleFullscreen,
 };
 
 function onKeydown(e) {
+  if (e.key === 'Escape' && fullscreen && !document.fullscreenElement) {
+    e.preventDefault();
+    toggleFullscreen();
+    return;
+  }
   const action = KEY_ACTIONS[e.key];
   if (!action || e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || els.dlg.open) return;
   const t = e.target;
@@ -133,13 +185,23 @@ function onKeydown(e) {
 }
 
 export function initNowPlaying() {
-  els.npPrev.innerHTML = prevIcon(20);
-  els.npNext.innerHTML = nextIcon(20);
-  els.npPlay.innerHTML = playIcon(28) + pauseIcon(26);
+  els.npPrev.innerHTML = prevIcon(16);
+  els.npNext.innerHTML = nextIcon(16);
+  els.npPlay.innerHTML = playIcon(22) + pauseIcon(21);
+  setFullscreenUI(false);
   els.npPlay.addEventListener('click', playPause);
   els.npPrev.addEventListener('click', prevStation);
   els.npNext.addEventListener('click', nextStation);
+  els.npFull.addEventListener('click', toggleFullscreen);
   document.addEventListener('keydown', onKeydown);
+
+  for (const type of ['pointermove', 'pointerdown']) {
+    els.npCover.addEventListener(type, () => { if (fullscreen) wake(); });
+  }
+  // Izlaz tasterom Esc ili gestom browsera.
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement && fullscreen) setFullscreenUI(false);
+  });
 
   onPlayerChange(e => {
     if (e.id) currentId = e.id;

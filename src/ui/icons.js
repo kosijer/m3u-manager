@@ -4,4 +4,9 @@ const svg = (cls, size, body) =>
 export const playIcon = (size = 14) => svg('i-play', size, '<path d="M7 4.6v14.8a1 1 0 0 0 1.5.86l12.2-7.4a1 1 0 0 0 0-1.72L8.5 3.74A1 1 0 0 0 7 4.6Z"/>');
 export const pauseIcon = (size = 14) => svg('i-pause', size, '<rect x="5" y="4" width="5" height="16" rx="1.4"/><rect x="14" y="4" width="5" height="16" rx="1.4"/>');
 export const prevIcon = (size = 18) => svg('i-prev', size, '<rect x="4" y="5" width="2.6" height="14" rx="1"/><path d="M19.5 5.9v12.2a1 1 0 0 1-1.55.83L9.2 12.83a1 1 0 0 1 0-1.66l8.75-6.1a1 1 0 0 1 1.55.83Z"/>');
+const strokeSvg = (cls, size, d) =>
+  `<svg class="${cls}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+
+export const enterFullscreenIcon = (size = 16) => strokeSvg('i-fs', size, 'M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5');
+export const exitFullscreenIcon = (size = 16) => strokeSvg('i-fs-exit', size, 'M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5');
 export const nextIcon = (size = 18) => svg('i-next', size, '<rect x="17.4" y="5" width="2.6" height="14" rx="1"/><path d="M4.5 5.9v12.2a1 1 0 0 0 1.55.83l8.75-6.1a1 1 0 0 0 0-1.66L6.05 5.07a1 1 0 0 0-1.55.83Z"/>');
