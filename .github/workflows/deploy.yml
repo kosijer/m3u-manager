@@ -28,6 +28,7 @@ jobs:
       - run: npm run build
         env:
           VITE_UPLOAD_PROVIDER: ${{ vars.VITE_UPLOAD_PROVIDER }}
+          VITE_NOWPLAYING_URL: ${{ vars.VITE_NOWPLAYING_URL }}
           # Ključ ugrađen u build je javno vidljiv u JS fajlu na sajtu. Otkomentariši samo ako to prihvataš
           # i dodaj ga u Settings > Secrets and variables > Actions.
           # VITE_IMGBB_API_KEY: ${{ secrets.VITE_IMGBB_API_KEY }}

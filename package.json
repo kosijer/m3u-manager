@@ -9,7 +9,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "worker:dev": "npx --yes wrangler dev --config worker/wrangler.toml",
+    "worker:deploy": "npx --yes wrangler deploy --config worker/wrangler.toml"
   },
   "engines": {
     "node": ">=20.19"

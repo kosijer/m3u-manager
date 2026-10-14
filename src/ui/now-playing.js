@@ -1,6 +1,7 @@
 import { initials } from '../lib/text.js';
 import { findStation, state } from '../state.js';
 import { onPlayerChange, play, playerState, stop, toggle } from '../services/player.js';
+import { currentTrack, onTrackChange, watchTrack } from '../services/track.js';
 import { openSection } from './accordion.js';
 import { els, loadThumb } from './dom.js';
 import { enterFullscreenIcon, exitFullscreenIcon, nextIcon, pauseIcon, playIcon, prevIcon } from './icons.js';
@@ -67,15 +68,19 @@ function renderArt(s) {
   else placeholder();
 }
 
-function updateMediaSession(s, status) {
+function updateMediaSession(s, status, song) {
   const ms = navigator.mediaSession;
   if (!ms) return;
   ms.playbackState = status === 'idle' ? 'paused' : 'playing';
   const art = s ? s.logo || s.pending : '';
-  const key = s ? `${s.name}|${art}` : '';
+  const key = s ? `${s.name}|${art}|${song}` : '';
   if (status === 'idle' || key === metaKey) return;
   metaKey = key;
-  ms.metadata = new MediaMetadata({ title: s.name, artist: 'M3U Studio', artwork: art ? [{ src: art }] : [] });
+  ms.metadata = new MediaMetadata({
+    title: song || s.name,
+    artist: song ? s.name : 'M3U Studio',
+    artwork: art ? [{ src: art }] : [],
+  });
 }
 
 export function renderNowPlaying() {
@@ -96,17 +101,23 @@ export function renderNowPlaying() {
   els.npMiniPlay.hidden = !s;
   els.npPrev.disabled = els.npNext.disabled = n < 2;
 
+  const t = currentTrack();
+  const song = s && status === 'playing' && t.id === s.id ? t.title : '';
   els.npStatus.classList.toggle('live', status === 'playing');
+  els.npStatus.classList.toggle('song', !!song);
   els.npStatus.textContent = !s ? ''
+    : song ? song
     : status === 'playing' ? 'Uživo'
     : status === 'loading' ? 'Učitavam…'
     : `Stanica ${state.stations.indexOf(s) + 1} od ${n}`;
+  els.npStatus.title = song;
   els.npName.textContent = s?.name ?? '';
   els.npName.title = s?.url ?? '';
   els.npFsName.textContent = s?.name ?? '';
+  els.npFsTrack.textContent = song;
 
   if (!s && fullscreen) setFullscreenUI(false);
-  updateMediaSession(s, status);
+  updateMediaSession(s, status, song);
 }
 
 /* ---------- ceo ekran ---------- */
@@ -213,8 +224,10 @@ export function initNowPlaying() {
 
   onPlayerChange(e => {
     if (e.id) currentId = e.id;
+    watchTrack(e.id, e.url);
     renderNowPlaying();
   });
+  onTrackChange(renderNowPlaying);
 
   // Multimedijalni tasteri na tastaturi i kontrole operativnog sistema.
   const ms = navigator.mediaSession;

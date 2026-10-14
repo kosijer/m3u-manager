@@ -1,0 +1,8 @@
+# Cloudflare Worker koji čita naziv pesme iz radio streama. Uputstvo je u README.md ("Naziv pesme").
+name = "m3u-now-playing"
+main = "src/index.js"
+compatibility_date = "2026-06-01"
+
+[vars]
+# Sajtovi kojima je dozvoljeno da pitaju Worker (zarezom razdvojeni, bez "/" na kraju).
+ALLOWED_ORIGINS = "https://kosijer.github.io,http://localhost:5173,http://localhost:4173"

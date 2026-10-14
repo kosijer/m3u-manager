@@ -154,7 +154,7 @@ input[type=range]{flex:1;min-width:120px;accent-color:var(--accent);padding:0}
 .np-cover:hover .np-ctl,.np-cover:focus-within .np-ctl,.np-cover.show-ctl .np-ctl{opacity:1}
 .np.empty .np-ctl{display:none}
 .np-btns{display:flex;align-items:center;gap:14px}
-.np-fs-name{visibility:hidden;min-width:0}
+.np-fs-info{visibility:hidden;min-width:0}
 .np-btn{width:37px;height:37px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;
   background:rgba(255,255,255,.92);color:#17211D;box-shadow:0 4px 14px rgba(0,0,0,.25);transition:transform .1s ease}
 .np-btn:hover{transform:scale(1.06)}
@@ -175,7 +175,10 @@ input[type=range]{flex:1;min-width:120px;accent-color:var(--accent);padding:0}
 .np-cover.is-fs .np-ctl{opacity:0;padding:0 32px 32px;background:linear-gradient(transparent 70%,rgba(0,0,0,.75))}
 .np-cover.is-fs.awake .np-ctl,.np-cover.is-fs.show-ctl .np-ctl,.np-cover.is-fs:has(:focus-visible) .np-ctl{opacity:1}
 .np-cover.is-fs:not(.awake){cursor:none}
-.np-cover.is-fs .np-fs-name{visibility:visible;color:#fff;font-weight:750;font-size:22px;font-stretch:105%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.np-cover.is-fs .np-fs-info{visibility:visible;color:#fff}
+.np-fs-name,.np-fs-track{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.np-fs-name{font-weight:750;font-size:22px;font-stretch:105%}
+.np-fs-track{font-size:16px;opacity:.8}
 .np-cover.is-fs .np-btns{gap:20px}
 .np-cover.is-fs .np-btn{width:48px;height:48px}
 .np-cover.is-fs .np-main{width:70px;height:70px}
@@ -184,7 +187,8 @@ input[type=range]{flex:1;min-width:120px;accent-color:var(--accent);padding:0}
 .np-status.live{color:var(--accent)}
 .np-status.live::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;margin-right:7px;vertical-align:1px;animation:pulse 1.4s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.25}}
-.np-name{min-width:0;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.np-status.song{flex:0 1 auto;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:600 13px var(--f-ui);letter-spacing:0;text-transform:none}
+.np-name{flex:none;max-width:45%;min-width:0;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (hover:none){
   .np-ctl{opacity:1}
 }

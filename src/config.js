@@ -10,6 +10,9 @@ export const ENV_KEYS = {
   imgur: (env.VITE_IMGUR_CLIENT_ID || '').trim(),
 };
 
+/** Adresa Cloudflare Workera za naziv pesme (worker/). Bez nje se naziv pesme ne prikazuje. */
+export const NOWPLAYING_URL = (env.VITE_NOWPLAYING_URL || '').trim().replace(/\/+$/, '');
+
 export const STORAGE_KEYS = {
   draft: 'm3ustudio.draft.v1',
   settings: 'm3ustudio.settings.v1',

@@ -11,6 +11,7 @@ Alat za pravljenje i uređivanje `.m3u` plejlisti internet radio stanica. Stati�
 - **Automatski upload loga** na ImgBB (ili Imgur) posle potvrde. Dobijeni link ide u `tvg-logo`.
 - **Lista stanica** sa prevlačenjem za promenu redosleda. Ručka ima i tastaturu (strelice gore i dole kad je fokusirana). Klik na stanicu otvara izmenu, sa poljem "Mesto u listi" i brisanjem.
 - **Preslušavanje:** dugme ▶ na svakoj stanici pušta stream (jedna stanica u isto vreme). Leva kolona je harmonika: otvorena je ili forma (dok se dodaje ili menja stanica) ili veliki pregled trenutne stanice u punoj veličini 600x600, poravnat uz dno ekrana; zatvoren pregled ostaje kao traka sa nazivom stanice i dugmetom ▶. Kad se pređe mišem preko loga, uz donju ivicu slike se pojave kontrole prethodna / pusti-zaustavi / sledeća i dugme za ceo ekran. Na celom ekranu se vidi samo logo, a kontrole se pojave kad se pomeri miš. Tastatura: **razmak** pušta i zaustavlja, **← / →** prelaze na prethodnu i sledeću stanicu, **F** uključuje i isključuje ceo ekran, **Esc** izlazi (sve dok je kursor van polja za unos). Rade i multimedijalni tasteri na tastaturi (play/pause, next, previous).
+- **Naziv pesme:** dok stanica svira, u zaglavlju pregleda (i na celom ekranu) piše pesma koja trenutno ide, ako je stanica šalje. Potreban je mali Cloudflare Worker, vidi [Naziv pesme](#naziv-pesme-cloudflare-worker).
 - **Poruke** (greške, potvrde) se pojavljuju kao snackbar u donjem desnom uglu; klik ga zatvara. HLS (`.m3u8`) radi i u Chrome-u i Firefox-u preko `hls.js`, koji se učitava tek kad zatreba. Na https sajtu (GitHub Pages) browser blokira `http://` streamove, a za HLS server mora da dozvoli CORS.
 - **Uvoz postojećeg `.m3u`** (dugme ili prevlačenje fajla na desni panel). Dodatni atributi (`tvg-id`, `group-title`...) i `#EXTVLCOPT` linije se čuvaju pri izvozu.
 - **Čuvanje:** dugme "Sačuvaj plejlistu" preuzima fajl. Postoje i kopiranje teksta i pregled M3U teksta.
@@ -74,6 +75,7 @@ Ključ unet u aplikaciji ima prednost. Ako je polje u aplikaciji prazno, koristi
 | `VITE_UPLOAD_PROVIDER` | `imgbb` (podrazumevano) ili `imgur` |
 | `VITE_IMGBB_API_KEY` | ImgBB API ključ |
 | `VITE_IMGUR_CLIENT_ID` | Imgur Client ID |
+| `VITE_NOWPLAYING_URL` | Adresa Workera za naziv pesme (nije tajna) |
 
 ## Deploy na GitHub Pages
 
@@ -84,6 +86,64 @@ Jednom podesi na GitHub-u: **Settings, Pages, Build and deployment, Source: GitH
 Ako ipak želiš ključ ugrađen u javni build: dodaj ga u **Settings, Secrets and variables, Actions** kao `VITE_IMGBB_API_KEY` i otkomentariši odgovarajuću liniju u workflow-u. Podrazumevani servis može da se zada kao repo varijabla `VITE_UPLOAD_PROVIDER`.
 
 Aplikacija koristi relativne putanje (`base: './'` u `vite.config.js`), pa radi i na Vercel-u, Netlify-ju ili bilo kom statičnom hostingu (Build Command `npm run build`, Output Directory `dist`).
+
+## Naziv pesme (Cloudflare Worker)
+
+Stanice šalju naziv pesme na dva načina, a Worker u folderu `worker/` čita oba:
+
+- **ICY** (Icecast/Shoutcast, MP3 i AAC streamovi): naziv je ubačen u sam stream, npr. Radio Paradise.
+- **ID3** (HLS, `.m3u8`): naziv je u segmentima, npr. LYL Lyon.
+
+Browser to ne može sam (CORS, a stream bi se skidao dvaput), pa aplikacija na svakih 20 sekundi pita Worker: `https://…workers.dev/?url=<link stanice>`. Worker pročita samo par desetina KB streama i vrati `{ "track": "Izvođač - Pesma", "source": "icy" }`. Ako stanica ne šalje naziv, aplikacija prestaje da pita za nju. Besplatan Cloudflare plan (100.000 zahteva dnevno) je više nego dovoljan.
+
+### Postavljanje (jednom, oko 5 minuta)
+
+Treba ti Cloudflare nalog i ovaj repo na računaru. Komande se kucaju u terminalu, u folderu projekta.
+
+1. **Prijava na Cloudflare iz terminala:**
+
+   ```bash
+   npx wrangler login
+   ```
+
+   Otvoriće se browser; prijavi se i klikni **Allow**. Ako `npx` pita da li da instalira `wrangler`, odgovori `y`.
+
+2. **Objavi Worker:**
+
+   ```bash
+   npm run worker:deploy
+   ```
+
+   Ako nalog još nema `workers.dev` poddomen, wrangler će tražiti da ga izabereš (npr. `kosijer`); to je deo adrese i bira se samo jednom. Na kraju ispiše adresu Workera, na primer:
+
+   ```
+   https://m3u-now-playing.kosijer.workers.dev
+   ```
+
+3. **Proveri da radi:** otvori u browseru (adresa iz koraka 2):
+
+   ```
+   https://m3u-now-playing.kosijer.workers.dev/?url=https://stream.radioparadise.com/mp3-128
+   ```
+
+   Treba da vidiš nešto kao `{"track":"Neil Young - Like a Hurricane","source":"icy"}`.
+
+4. **Lokalno:** u `.env` dodaj liniju sa svojom adresom i ponovo pokreni `npm run dev`:
+
+   ```
+   VITE_NOWPLAYING_URL=https://m3u-now-playing.kosijer.workers.dev
+   ```
+
+5. **Na GitHub Pages:** na GitHub-u otvori repo, pa **Settings, Secrets and variables, Actions**, karticu **Variables**, **New repository variable**: ime `VITE_NOWPLAYING_URL`, vrednost adresa Workera. Zatim pokreni deploy ponovo (novi push, ili **Actions, Deploy na GitHub Pages, Run workflow**).
+
+Adresa Workera nije tajna: Worker odgovara samo sajtovima navedenim u `ALLOWED_ORIGINS` u `worker/wrangler.toml` (tvoj GitHub Pages i lokalni razvoj). Ako sajt preseliš na drugi domen, dodaj ga tamo i ponovo pokreni `npm run worker:deploy`.
+
+### Korisno
+
+- `npm run worker:dev` pokreće Worker lokalno na `http://localhost:8787` (za probu izmena u `worker/src/`).
+- `npx wrangler tail --config worker/wrangler.toml` prikazuje greške Workera uživo.
+- Na mreži koja presreće HTTPS (korporativni proxy, npr. Netskope) lokalni `worker:dev` ne može da otvori neke stanice, jer ne veruje sertifikatu proxyja. Objavljen Worker radi na Cloudflare mreži, pa ga to ne pogađa.
+- Neke stanice ne šalju naziv pesme; tada se u zaglavlju i dalje vidi samo "Uživo".
 
 ## Kako napraviti ImgBB API ključ
 
@@ -151,6 +211,7 @@ src/
   services/
     upload.js              upload na ImgBB / Imgur (novi servis = nova funkcija u UPLOADERS)
     player.js              preslušavanje streama (audio + hls.js)
+    track.js               naziv pesme: pita Worker dok stanica svira
   ui/
     dom.js                 els (svi elementi sa id-jem), toast, dugme sa potvrdom
     status.js              gornja traka, brojač, odloženo čuvanje nacrta
@@ -163,6 +224,10 @@ src/
     playlist.js            uvoz, čuvanje, kopiranje, nova lista
     uploads.js             ponovni upload logotipa koji čekaju
     settings-dialog.js     dijalog "Upload slika"
+worker/                    Cloudflare Worker za naziv pesme
+  wrangler.toml            ime Workera i dozvoljeni sajtovi (ALLOWED_ORIGINS)
+  src/index.js             HTTP: /?url=<stream> vraća { track, source }
+  src/meta.js              čitanje ICY, ID3 i MPEG-TS (ima testove)
 ```
 
 Model stanice:
