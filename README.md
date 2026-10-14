@@ -177,6 +177,12 @@ Postimages.org nema javni API, zato nije ugrađen. Ručni tok: u kropperu klikni
 
 ## Problemi
 
+**Sajt na GitHub Pages je prazan ili nema poslednjih izmena**
+U **Settings, Pages** izvor mora biti **GitHub Actions**. Ako je ostao "Deploy from a branch", na svaki push idu dva deploya i onaj iz grane (sirovi fajlovi, bez build-a) ponekad pregazi pravi. Posle promene pokreni deploy ponovo (**Actions, Deploy na GitHub Pages, Run workflow** ili novi push).
+
+**Naziv pesme se ne pojavljuje**
+Otvori `https://<adresa-workera>/?url=<link stanice>` u browseru. Ako tu ima naziva, proveri da je `VITE_NOWPLAYING_URL` podešen (lokalno u `.env`, za sajt kao repo varijabla) i da je posle toga urađen novi build. Ako odgovor ima `"source":null`, stanica ne šalje naziv pesme. Odmah posle prvog `worker:deploy` adresa može par minuta da ne radi dok Cloudflare ne izda sertifikat za novi poddomen.
+
 **"Upload nije uspeo: nema veze sa servisom"**
 Zahtev je blokiran ili nema mreže. Proveri internet i ad-blocker.
 
