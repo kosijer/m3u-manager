@@ -3,12 +3,17 @@ export const els = {};
 for (const el of document.querySelectorAll('[id]')) els[el.id] = el;
 
 let toastTimer;
+const hideToast = () => { clearTimeout(toastTimer); els.toast.classList.remove('show'); };
+els.toast.addEventListener('click', hideToast);
+
+/** Snackbar dole desno. kind 'err' je crven i ostaje duže. */
 export function toast(msg, kind) {
   const t = els.toast;
   t.textContent = msg;
   t.className = 'toast show' + (kind === 'err' ? ' err' : '');
+  t.title = 'Klikni da zatvoriš';
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { t.className = 'toast'; }, kind === 'err' ? 6500 : 3200);
+  toastTimer = setTimeout(hideToast, kind === 'err' ? 6500 : 3200);
 }
 
 export function setLabel(btn, text) {

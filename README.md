@@ -2,15 +2,16 @@
 
 Alat za pravljenje i uređivanje `.m3u` plejlisti internet radio stanica. Statična aplikacija (Vite, čist JavaScript, bez frameworka), radi na GitHub Pages.
 
-Šta zamenjuje: ručno traženje loga, smanjivanje na 300x300, uploadovanje na hosting za slike, kopiranje linka u fajl i ručno slaganje redosleda.
+Šta zamenjuje: ručno traženje loga, smanjivanje na 600x600, uploadovanje na hosting za slike, kopiranje linka u fajl i ručno slaganje redosleda.
 
 ## Šta radi
 
 - **Dodavanje stanice:** naziv, link ka streamu i logo.
-- **Kropper za logo:** slika se prevuče, izabere ili nalepi (Ctrl+V). Pomera se prevlačenjem, zumira točkićem ili klizačem. Izlaz je uvek PNG 300x300, sa providnom, belom ili crnom pozadinom. Dugme "Kropuj" pored polja za link učitava sliku sa linka (radi samo ako sajt dozvoljava CORS).
+- **Kropper za logo:** slika se prevuče, izabere ili nalepi (Ctrl+V). Pomera se prevlačenjem, zumira točkićem ili klizačem. Izlaz je uvek PNG 600x600, sa providnom, belom ili crnom pozadinom. Dugme "Kropuj" pored polja za link učitava sliku sa linka (radi samo ako sajt dozvoljava CORS).
 - **Automatski upload loga** na ImgBB (ili Imgur) posle potvrde. Dobijeni link ide u `tvg-logo`.
 - **Lista stanica** sa prevlačenjem za promenu redosleda. Ručka ima i tastaturu (strelice gore i dole kad je fokusirana). Klik na stanicu otvara izmenu, sa poljem "Mesto u listi" i brisanjem.
-- **Preslušavanje:** dugme ▶ na svakoj stanici pušta stream (jedna stanica u isto vreme). HLS (`.m3u8`) radi i u Chrome-u i Firefox-u preko `hls.js`, koji se učitava tek kad zatreba. Na https sajtu (GitHub Pages) browser blokira `http://` streamove, a za HLS server mora da dozvoli CORS.
+- **Preslušavanje:** dugme ▶ na svakoj stanici pušta stream (jedna stanica u isto vreme). Ispod forme je veliki pregled trenutne stanice; kad se pređe mišem preko loga pojave se kontrole prethodna / pusti-zaustavi / sledeća. Tastatura: **razmak** pušta i zaustavlja, **← / →** prelaze na prethodnu i sledeću stanicu (dok je kursor van polja za unos). Rade i multimedijalni tasteri na tastaturi (play/pause, next, previous).
+- **Poruke** (greške, potvrde) se pojavljuju kao snackbar u donjem desnom uglu; klik ga zatvara. HLS (`.m3u8`) radi i u Chrome-u i Firefox-u preko `hls.js`, koji se učitava tek kad zatreba. Na https sajtu (GitHub Pages) browser blokira `http://` streamove, a za HLS server mora da dozvoli CORS.
 - **Uvoz postojećeg `.m3u`** (dugme ili prevlačenje fajla na desni panel). Dodatni atributi (`tvg-id`, `group-title`...) i `#EXTVLCOPT` linije se čuvaju pri izvozu.
 - **Čuvanje:** dugme "Sačuvaj plejlistu" preuzima fajl. Postoje i kopiranje teksta i pregled M3U teksta.
 - **Automatski nacrt:** nesačuvan rad se pamti u `localStorage` i vraća pri sledećem otvaranju.
@@ -95,7 +96,7 @@ Imgur ima stroža ograničenja i neke mreže ga blokiraju, pa je ImgBB podrazume
 
 ### Postimages
 
-Postimages.org nema javni API, zato nije ugrađen. Ručni tok: u kropperu klikni **Preuzmi PNG** (300x300), uploaduj ga na postimages.org, a dobijeni direktan link nalepi u polje **Link logotipa**.
+Postimages.org nema javni API, zato nije ugrađen. Ručni tok: u kropperu klikni **Preuzmi PNG** (600x600), uploaduj ga na postimages.org, a dobijeni direktan link nalepi u polje **Link logotipa**.
 
 ## Problemi
 
@@ -137,8 +138,10 @@ src/
     dom.js                 els (svi elementi sa id-jem), toast, dugme sa potvrdom
     status.js              gornja traka, brojač, odloženo čuvanje nacrta
     form.js                forma za dodavanje i izmenu stanice
-    cropper.js             kropper za logo (300x300 PNG)
+    cropper.js             kropper za logo (600x600 PNG)
     list.js                lista stanica i promena redosleda
+    now-playing.js         veliki pregled stanice, kontrole i prečice na tastaturi
+    icons.js               SVG ikonice (play, pauza, prethodna, sledeća)
     playlist.js            uvoz, čuvanje, kopiranje, nova lista
     uploads.js             ponovni upload logotipa koji čekaju
     settings-dialog.js     dijalog "Upload slika"

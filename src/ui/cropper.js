@@ -5,6 +5,7 @@ import { selectedStation } from '../state.js';
 import { els, loadThumb, toast } from './dom.js';
 
 const MAX_ZOOM = 4;
+const LOGO_PLACEHOLDER = 'Link logotipa (https://…)';
 
 /**
  * cx, cy: centar slike u odnosu na okvir (0..1). z: zum, gde 1 znači da kraća strana slike popunjava okvir,
@@ -58,11 +59,11 @@ function showCropper(on) {
   if (on) {
     crop.prevLogo = els.fLogo.value;
     els.fLogo.value = '';
-    els.fLogo.placeholder = 'Popuniće se posle uploada';
+    els.fLogo.placeholder = 'Link logotipa: popuniće se posle uploada';
   } else {
     if (crop.prevLogo) els.fLogo.value = crop.prevLogo;
     crop.prevLogo = '';
-    els.fLogo.placeholder = 'https://…';
+    els.fLogo.placeholder = LOGO_PLACEHOLDER;
   }
   updateLogoThumb();
 }
@@ -90,7 +91,6 @@ function loadIntoCropper(src, { cors = false, objectUrl = false } = {}) {
       els.zoom.min = String(fit);
       els.zoom.value = String(fit);
       if (!wasActive) showCropper(true);
-      els.logoHint.hidden = true;
       drawPreview();
       resolve();
     };
@@ -111,12 +111,13 @@ function takeImageFile(file) {
 async function loadLogoFromUrl(url) {
   url = url.trim();
   if (!url) return;
-  els.logoHint.hidden = false;
-  els.logoHint.textContent = 'Učitavam sliku…';
+  els.btnLoadLogo.disabled = true;
   try {
     await loadIntoCropper(url, { cors: true });
   } catch {
-    els.logoHint.textContent = 'Taj sajt ne dozvoljava da se slika učita u pregledač. Sačuvaj je na računar (desni klik, Save image as) pa je prevuci gore. Link možeš i da ostaviš ovakav kakav jeste.';
+    toast('Taj sajt ne dozvoljava da se slika učita u pregledač. Sačuvaj je na računar i prevuci je u polje za logo. Link možeš i da ostaviš ovakav kakav jeste.', 'err');
+  } finally {
+    els.btnLoadLogo.disabled = crop.active;
   }
 }
 
@@ -152,6 +153,8 @@ function handleImageDrop(e) {
 
 export function initCropper() {
   const cv = els.cv;
+  cv.width = cv.height = LOGO_SIZE;
+  els.cropSize.textContent = `${LOGO_SIZE} × ${LOGO_SIZE}`;
   cv.addEventListener('pointerdown', e => {
     if (!crop.active) return;
     cv.setPointerCapture(e.pointerId);

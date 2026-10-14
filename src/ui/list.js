@@ -3,12 +3,13 @@ import { initials } from '../lib/text.js';
 import { onPlayerChange, playerState, stop as stopPlayer, toggle as togglePlayer } from '../services/player.js';
 import { els, loadThumb, toast } from './dom.js';
 import { selectStation } from './form.js';
+import { pauseIcon, playIcon } from './icons.js';
+import { renderNowPlaying } from './now-playing.js';
 import { markDirty, updateUI } from './status.js';
 import { isUploading, retryUpload } from './uploads.js';
 
 const GRIP_SVG = '<svg width="12" height="18" viewBox="0 0 12 18" fill="currentColor" aria-hidden="true"><circle cx="3" cy="3" r="1.5"/><circle cx="9" cy="3" r="1.5"/><circle cx="3" cy="9" r="1.5"/><circle cx="9" cy="9" r="1.5"/><circle cx="3" cy="15" r="1.5"/><circle cx="9" cy="15" r="1.5"/></svg>';
-const PLAY_SVG = '<svg class="i-play" width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true"><path d="M3 1.8v10.4a.6.6 0 0 0 .9.5l8.4-5.2a.6.6 0 0 0 0-1L3.9 1.3a.6.6 0 0 0-.9.5Z"/></svg>';
-const STOP_SVG = '<svg class="i-stop" width="12" height="12" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><rect x="1" y="1" width="10" height="10" rx="1.5"/></svg>';
+const PLAY_PAUSE_SVG = playIcon(14) + pauseIcon(13);
 
 function el(tag, className, text) {
   const e = document.createElement(tag);
@@ -55,7 +56,7 @@ function rowEl(s, index, pad, flashId) {
   }
   const play = el('button', 'play');
   play.type = 'button';
-  play.innerHTML = PLAY_SVG + STOP_SVG;
+  play.innerHTML = PLAY_PAUSE_SVG;
   setPlayButton(play, s, playerState());
   actions.append(play);
 
@@ -99,6 +100,7 @@ export function renderList(flashId) {
   els.empty.hidden = !none;
   if (flashId) ul.querySelector('.flash')?.scrollIntoView({ block: 'nearest' });
   updateUI();
+  renderNowPlaying();
 }
 
 export function markSelected() {

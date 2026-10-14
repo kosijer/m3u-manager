@@ -16,5 +16,5 @@ export const STORAGE_KEYS = {
 };
 
 export const DEFAULT_FILENAME = 'radio.m3u';
-export const LOGO_SIZE = 300;
+export const LOGO_SIZE = 600;
 export const UPLOAD_TIMEOUT_MS = 30_000;

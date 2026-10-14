@@ -31,37 +31,32 @@
 <main>
   <section class="panel left" aria-labelledby="formTitle">
     <div class="phead"><h2 id="formTitle">Nova stanica</h2><span class="tag" id="modeTag" hidden></span></div>
-    <form id="form" class="pbody" novalidate>
-      <div class="field">
-        <label for="fName">Naziv stanice</label>
-        <input id="fName" type="text" autocomplete="off" placeholder="LYL Lyon">
-        <p class="err" id="eName" hidden></p>
-      </div>
-      <div class="field">
-        <label for="fUrl">Link ka stanici</label>
-        <input id="fUrl" class="mono" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://radio.lyl.live/hls/aac_hifi.m3u8">
-        <p class="err" id="eUrl" hidden></p>
-      </div>
-      <div class="field posrow" id="posRow" hidden>
+    <form id="form" class="pbody form" novalidate>
+      <input id="fName" type="text" autocomplete="off" placeholder="Naziv stanice" aria-label="Naziv stanice">
+      <input id="fUrl" class="mono" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="Link ka stanici (https://…)" aria-label="Link ka stanici">
+      <div class="posrow" id="posRow" hidden>
         <label for="fPos">Mesto u listi</label>
         <input id="fPos" type="number" min="1" inputmode="numeric">
         <span class="hint" id="posOf"></span>
       </div>
 
-      <div>
-        <div class="lab logo-label">Logo</div>
+      <div class="logo-block">
         <div class="note" id="hostNote" hidden>
-          <span>Automatski upload još nije podešen. Slika će čekati upload.</span>
+          <span>Upload slika nije podešen, logo će čekati.</span>
           <button class="btn small" type="button" id="btnHostSetup">Podesi</button>
         </div>
+        <div class="logorow">
+          <span class="lthumb" id="lthumb" aria-hidden="true">logo</span>
+          <input id="fLogo" class="mono" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="Link logotipa (https://…)" aria-label="Link logotipa">
+          <button type="button" class="btn small" id="btnLoadLogo" title="Učitaj sliku sa ovog linka u kropper">Kropuj</button>
+        </div>
         <div class="dz" id="dz" tabindex="0" role="button" aria-label="Izaberi ili prevuci sliku logotipa">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="1.5"/><circle cx="9" cy="10" r="1.5"/><path d="m4 17 5-4.5 4 3.5 3-2.5 4 3.5"/></svg>
-          <div><strong>Prevuci logo ovde</strong></div>
-          <div>ili klikni da izabereš, ili nalepi sliku (Ctrl+V)</div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="1.5"/><circle cx="9" cy="10" r="1.5"/><path d="m4 17 5-4.5 4 3.5 3-2.5 4 3.5"/></svg>
+          <span><strong>Prevuci logo</strong>, klikni ili nalepi (Ctrl+V)</span>
         </div>
         <input id="logoInput" type="file" accept="image/*" hidden>
         <div id="cropper" hidden>
-          <div class="stage" id="stageBox"><canvas id="cv" width="600" height="600" aria-label="Pregled logotipa. Prevlačenjem pomeraš sliku."></canvas><span class="px">300 × 300</span></div>
+          <div class="stage" id="stageBox"><canvas id="cv" width="600" height="600" aria-label="Pregled logotipa. Prevlačenjem pomeraš sliku."></canvas><span class="px" id="cropSize"></span></div>
           <div class="ctl">
             <div class="r">
               <label for="zoom">Zum</label>
@@ -84,17 +79,6 @@
             </div>
           </div>
         </div>
-        <div class="logorow">
-          <span class="lthumb" id="lthumb" aria-hidden="true">logo</span>
-          <div class="field">
-            <label for="fLogo">Link logotipa</label>
-            <div class="inline">
-              <input id="fLogo" class="mono" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://…">
-              <button type="button" class="btn small" id="btnLoadLogo" title="Učitaj sliku sa ovog linka u kropper">Kropuj</button>
-            </div>
-          </div>
-        </div>
-        <p class="hint logo-hint" id="logoHint" hidden></p>
       </div>
 
       <div class="actions">
@@ -103,6 +87,25 @@
         <button class="btn" type="button" id="btnDel" hidden><span class="lbl">Obriši</span></button>
       </div>
     </form>
+
+    <div class="np" id="np" role="region" aria-label="Preslušavanje">
+      <div class="np-stage">
+        <div class="np-cover" id="npCover">
+          <div class="np-art" id="npArt"></div>
+          <div class="np-ctl" role="group" aria-label="Kontrole preslušavanja">
+            <button class="np-btn" type="button" id="npPrev" aria-label="Prethodna stanica" title="Prethodna stanica (←)"></button>
+            <button class="np-btn np-main" type="button" id="npPlay" data-state="idle"></button>
+            <button class="np-btn" type="button" id="npNext" aria-label="Sledeća stanica" title="Sledeća stanica (→)"></button>
+          </div>
+        </div>
+      </div>
+      <div class="np-meta">
+        <div class="np-status" id="npStatus" aria-live="polite"></div>
+        <div class="np-name" id="npName"></div>
+        <div class="np-url" id="npUrl"></div>
+        <div class="np-keys"><kbd>Razmak</kbd> pusti/zaustavi <kbd>←</kbd><kbd>→</kbd> prethodna/sledeća</div>
+      </div>
+    </div>
   </section>
 
   <section class="panel right" id="rightPanel" aria-label="Plejlista">

@@ -5,16 +5,15 @@ import { MissingKeyError, describeUploadError } from '../services/upload.js';
 import { clearCrop, exportCrop, isCropActive, updateLogoThumb } from './cropper.js';
 import { confirmButton, els, setLabel, toast } from './dom.js';
 import { markSelected, renderList } from './list.js';
+import { previewStation } from './now-playing.js';
 import { markDirty, updateUI } from './status.js';
 import { uploadLogo } from './uploads.js';
 
 let resetDeleteButton = () => {};
 
-function setError(field, msg) {
-  const p = els['e' + field], input = els['f' + field];
-  p.hidden = !msg;
-  p.textContent = msg || '';
-  input.setAttribute('aria-invalid', msg ? 'true' : 'false');
+/** Polje se samo uokviri crveno; tekst greške ide u snackbar. */
+function markInvalid(input, invalid) {
+  input.setAttribute('aria-invalid', invalid ? 'true' : 'false');
 }
 
 /** Puni formu podacima stanice (izmena) ili je prazni (nova stanica). */
@@ -25,9 +24,8 @@ export function fillForm(station) {
   els.fName.value = station?.name ?? '';
   els.fUrl.value = station?.url ?? '';
   els.fLogo.value = station?.logo ?? '';
-  els.logoHint.hidden = true;
-  setError('Name', '');
-  setError('Url', '');
+  markInvalid(els.fName, false);
+  markInvalid(els.fUrl, false);
   els.formTitle.textContent = edit ? 'Izmena stanice' : 'Nova stanica';
   els.modeTag.hidden = !edit;
   if (edit) {
@@ -51,6 +49,7 @@ export function selectStation(id) {
   state.selectedId = id;
   fillForm(s);
   markSelected();
+  previewStation(id);
   if (innerWidth <= 860) els.form.scrollIntoView({ behavior: 'smooth', block: 'start' });
   els.fName.focus({ preventScroll: true });
 }
@@ -88,10 +87,18 @@ async function onSubmit(e) {
   const name = els.fName.value.trim();
   const url = els.fUrl.value.trim();
   const urlOk = isStreamUrl(url);
-  setError('Name', name ? '' : 'Upiši naziv stanice.');
-  setError('Url', !url ? 'Nalepi link ka stanici.' : urlOk ? '' : 'Link treba da počinje sa http:// ili https://');
-  if (!name) { els.fName.focus(); return; }
-  if (!urlOk) { els.fUrl.focus(); return; }
+  markInvalid(els.fName, !name);
+  markInvalid(els.fUrl, !urlOk);
+  if (!name || !urlOk) {
+    const problems = [
+      !name && 'upiši naziv stanice',
+      !url && 'nalepi link ka stanici',
+      url && !urlOk && 'link treba da počinje sa http:// ili https://',
+    ].filter(Boolean);
+    toast(problems.join(', ').replace(/^./, c => c.toUpperCase()) + '.', 'err');
+    (name ? els.fUrl : els.fName).focus();
+    return;
+  }
 
   const editing = selectedStation();
   const requestedPos = parseInt(els.fPos.value, 10);
@@ -148,6 +155,9 @@ function deleteSelected() {
 
 export function initForm() {
   els.form.addEventListener('submit', onSubmit);
+  for (const input of [els.fName, els.fUrl]) {
+    input.addEventListener('input', () => markInvalid(input, false));
+  }
   els.btnCancel.addEventListener('click', deselect);
   resetDeleteButton = confirmButton(els.btnDel, 'Potvrdi brisanje', deleteSelected);
   document.addEventListener('keydown', e => {

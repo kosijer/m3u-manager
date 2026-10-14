@@ -5,6 +5,7 @@ import { initCropper } from './ui/cropper.js';
 import { els, toast } from './ui/dom.js';
 import { fillForm, initForm } from './ui/form.js';
 import { initList, renderList } from './ui/list.js';
+import { initNowPlaying } from './ui/now-playing.js';
 import { initPlaylist } from './ui/playlist.js';
 import { initSettingsDialog } from './ui/settings-dialog.js';
 import { initStatus } from './ui/status.js';
@@ -18,6 +19,7 @@ initList();
 initForm();
 initPlaylist();
 initSettingsDialog();
+initNowPlaying();
 
 els.fFile.value = state.filename;
 fillForm(null);
