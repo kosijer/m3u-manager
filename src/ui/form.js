@@ -2,6 +2,7 @@ import { createStation } from '../lib/station.js';
 import { isStreamUrl } from '../lib/text.js';
 import { canUpload, findStation, moveStation, selectedStation, state } from '../state.js';
 import { MissingKeyError, describeUploadError } from '../services/upload.js';
+import { openSection } from './accordion.js';
 import { clearCrop, exportCrop, isCropActive, updateLogoThumb } from './cropper.js';
 import { confirmButton, els, setLabel, toast } from './dom.js';
 import { markSelected, renderList } from './list.js';
@@ -16,7 +17,10 @@ function markInvalid(input, invalid) {
   input.setAttribute('aria-invalid', invalid ? 'true' : 'false');
 }
 
-/** Puni formu podacima stanice (izmena) ili je prazni (nova stanica). */
+/**
+ * Puni formu podacima stanice (izmena) ili je prazni (nova stanica).
+ * Izmena otvara formu; prazna forma vraća pregled, osim kad lista nema stanica.
+ */
 export function fillForm(station) {
   clearCrop();
   resetDeleteButton();
@@ -38,6 +42,7 @@ export function fillForm(station) {
   els.btnCancel.hidden = !edit;
   els.btnDel.hidden = !edit;
   setLabel(els.btnSubmit, edit ? 'Sačuvaj izmene' : 'Dodaj stanicu');
+  openSection(edit || !state.stations.length ? 'form' : 'np');
   updateLogoThumb();
   updateUI();
 }
@@ -127,8 +132,11 @@ async function onSubmit(e) {
 
     state.selectedId = null;
     fillForm(null);
+    // Posle dodavanja forma ostaje otvorena za sledeću stanicu.
+    if (!editing) openSection('form');
     markDirty();
     renderList(station.id);
+    previewStation(station.id);
 
     if (error instanceof MissingKeyError) toast('Stanica je sačuvana. Logo čeka upload dok ne podesiš servis za slike.', 'err');
     else if (error) toast('Stanica je sačuvana, ali upload logoa nije uspeo: ' + describeUploadError(error), 'err');

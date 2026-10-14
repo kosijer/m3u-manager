@@ -10,7 +10,7 @@ Alat za pravljenje i uređivanje `.m3u` plejlisti internet radio stanica. Stati�
 - **Kropper za logo:** slika se prevuče, izabere ili nalepi (Ctrl+V). Pomera se prevlačenjem, zumira točkićem ili klizačem. Izlaz je uvek PNG 600x600, sa providnom, belom ili crnom pozadinom. Dugme "Kropuj" pored polja za link učitava sliku sa linka (radi samo ako sajt dozvoljava CORS).
 - **Automatski upload loga** na ImgBB (ili Imgur) posle potvrde. Dobijeni link ide u `tvg-logo`.
 - **Lista stanica** sa prevlačenjem za promenu redosleda. Ručka ima i tastaturu (strelice gore i dole kad je fokusirana). Klik na stanicu otvara izmenu, sa poljem "Mesto u listi" i brisanjem.
-- **Preslušavanje:** dugme ▶ na svakoj stanici pušta stream (jedna stanica u isto vreme). Ispod forme je veliki pregled trenutne stanice, poravnat uz dno ekrana; kad se pređe mišem preko loga, uz donju ivicu slike se pojave kontrole prethodna / pusti-zaustavi / sledeća i dugme za ceo ekran. Na celom ekranu se vidi samo logo, a kontrole se pojave kad se pomeri miš. Tastatura: **razmak** pušta i zaustavlja, **← / →** prelaze na prethodnu i sledeću stanicu, **F** uključuje i isključuje ceo ekran, **Esc** izlazi (sve dok je kursor van polja za unos). Rade i multimedijalni tasteri na tastaturi (play/pause, next, previous).
+- **Preslušavanje:** dugme ▶ na svakoj stanici pušta stream (jedna stanica u isto vreme). Leva kolona je harmonika: otvorena je ili forma (dok se dodaje ili menja stanica) ili veliki pregled trenutne stanice u punoj veličini 600x600, poravnat uz dno ekrana; zatvoren pregled ostaje kao traka sa nazivom stanice i dugmetom ▶. Kad se pređe mišem preko loga, uz donju ivicu slike se pojave kontrole prethodna / pusti-zaustavi / sledeća i dugme za ceo ekran. Na celom ekranu se vidi samo logo, a kontrole se pojave kad se pomeri miš. Tastatura: **razmak** pušta i zaustavlja, **← / →** prelaze na prethodnu i sledeću stanicu, **F** uključuje i isključuje ceo ekran, **Esc** izlazi (sve dok je kursor van polja za unos). Rade i multimedijalni tasteri na tastaturi (play/pause, next, previous).
 - **Poruke** (greške, potvrde) se pojavljuju kao snackbar u donjem desnom uglu; klik ga zatvara. HLS (`.m3u8`) radi i u Chrome-u i Firefox-u preko `hls.js`, koji se učitava tek kad zatreba. Na https sajtu (GitHub Pages) browser blokira `http://` streamove, a za HLS server mora da dozvoli CORS.
 - **Uvoz postojećeg `.m3u`** (dugme ili prevlačenje fajla na desni panel). Dodatni atributi (`tvg-id`, `group-title`...) i `#EXTVLCOPT` linije se čuvaju pri izvozu.
 - **Čuvanje:** dugme "Sačuvaj plejlistu" preuzima fajl. Postoje i kopiranje teksta i pregled M3U teksta.
@@ -113,7 +113,7 @@ Imgur ima stroža ograničenja i neke mreže ga blokiraju, pa je ImgBB podrazume
 
 ### Postimages
 
-Postimages.org nema javni API, zato nije ugrađen. Ručni tok: u kropperu klikni **Preuzmi PNG** (600x600), uploaduj ga na postimages.org, a dobijeni direktan link nalepi u polje **Link logotipa**.
+Postimages.org nema javni API, zato nije ugrađen. Ručni tok: u kropperu klikni ikonicu **Preuzmi PNG** (600x600), uploaduj ga na postimages.org, a dobijeni direktan link nalepi u polje **Link logotipa**.
 
 ## Problemi
 
@@ -154,6 +154,7 @@ src/
   ui/
     dom.js                 els (svi elementi sa id-jem), toast, dugme sa potvrdom
     status.js              gornja traka, brojač, odloženo čuvanje nacrta
+    accordion.js           leva kolona: otvorena je forma ili pregled stanice
     form.js                forma za dodavanje i izmenu stanice
     cropper.js             kropper za logo (600x600 PNG)
     list.js                lista stanica i promena redosleda

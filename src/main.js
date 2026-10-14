@@ -1,6 +1,7 @@
 import './styles.css';
 import { formatCount } from './lib/text.js';
 import { restoreDraft, restoreSettings, state } from './state.js';
+import { initAccordion } from './ui/accordion.js';
 import { initCropper } from './ui/cropper.js';
 import { els, toast } from './ui/dom.js';
 import { fillForm, initForm } from './ui/form.js';
@@ -14,6 +15,7 @@ restoreSettings();
 const restored = restoreDraft();
 
 initStatus();
+initAccordion();
 initCropper();
 initList();
 initForm();

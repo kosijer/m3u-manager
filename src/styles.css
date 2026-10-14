@@ -52,7 +52,8 @@ main{padding:var(--gutter);display:grid;gap:var(--gutter);grid-template-columns:
 @media (min-width:861px){
   html,body{height:100%}
   body{display:flex;flex-direction:column}
-  main{flex:1;min-height:0;grid-template-columns:minmax(340px,440px) minmax(0,1fr)}
+  /* 636 = pregled 600 + ivica okvira 2 + padding 32 + ivica panela 2 */
+  main{flex:1;min-height:0;grid-template-columns:clamp(360px,55%,636px) minmax(0,1fr)}
   .panel{min-height:0}
   .left{overflow:auto}
   .listwrap{flex:1;min-height:0;overflow:auto}
@@ -99,11 +100,21 @@ input:disabled{opacity:.6}
 .stage .px{position:absolute;right:6px;bottom:6px;font:500 11px var(--f-mono);background:rgba(10,15,12,.72);color:#fff;padding:2px 6px;border-radius:2px;pointer-events:none}
 .ctl{display:flex;flex-direction:column;gap:10px;margin-top:12px}
 .ctl .r{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.zoomrow{color:var(--muted)}
+.ctl .tools{flex-wrap:nowrap;gap:8px}
 input[type=range]{flex:1;min-width:120px;accent-color:var(--accent);padding:0}
 .seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:4px;overflow:hidden}
 .seg button{background:transparent;border:0;padding:6px 11px;font-weight:600;font-size:13px;cursor:pointer}
 .seg button+button{border-left:1px solid var(--line-strong)}
 .seg button[aria-pressed=true]{background:var(--ink);color:var(--panel)}
+.seg button:hover:not([aria-pressed=true]){background:var(--field)}
+.ico{display:grid;place-items:center}
+.seg button.ico,.btn.small.ico{width:36px;height:32px;padding:0}
+.sw{display:block;width:16px;height:16px;border-radius:50%;border:1px solid var(--line-strong)}
+.sw-t{background:conic-gradient(#C9CFC5 25%,#fff 0 50%,#C9CFC5 0 75%,#fff 0) 0 0/8px 8px}
+.sw-w{background:#fff}
+.sw-b{background:#000}
+.seg [aria-pressed=true] .sw{border-color:var(--panel);box-shadow:0 0 0 1px var(--ink)}
 .logorow{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:8px;align-items:center}
 .lthumb{width:42px;height:42px;border:1px solid var(--line);border-radius:3px;overflow:hidden;display:grid;place-items:center;
   color:var(--muted);font:600 10px var(--f-mono);
@@ -112,10 +123,26 @@ input[type=range]{flex:1;min-width:120px;accent-color:var(--accent);padding:0}
 .actions{display:flex;gap:10px;flex-wrap:wrap}
 .actions .primary{flex:1}
 
+/* Harmonika u levoj koloni: forma ili pregled stanice */
+.acc-head{padding:0;flex-wrap:nowrap}
+.acc-head h2{flex:1;min-width:0}
+.acc-btn{display:flex;align-items:center;gap:10px;width:100%;min-height:46px;padding:12px 16px;background:none;border:0;cursor:pointer;
+  text-align:left;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit}
+.acc-btn:hover .chev{color:var(--ink)}
+.acc-btn:focus-visible{outline:2px solid var(--teal);outline-offset:-2px}
+.acc-btn .tag{text-transform:none;letter-spacing:0;font-weight:500}
+.chev{flex:none;color:var(--muted);transition:transform .15s ease}
+.acc-btn[aria-expanded=true] .chev{transform:rotate(90deg)}
+.left.np-open>.acc-head{border-bottom:0}
+
 /* Preslušavanje: veliki pregled trenutne stanice ispod forme */
-.np{flex:none;display:flex;flex-direction:column;gap:12px;padding:14px 16px 16px;border-top:1px solid var(--line)}
-.np-stage{display:grid;place-items:end center}
-.np-cover{position:relative;width:min(100%,360px);aspect-ratio:1;border:1px solid var(--line);border-radius:6px;overflow:hidden;
+.np{flex:none;display:flex;flex-direction:column;margin-top:auto;border-top:1px solid var(--line)}
+.np .acc-head{border-bottom:0}
+.np-sub{margin-left:auto;display:flex;align-items:baseline;gap:10px;min-width:0;text-transform:none;letter-spacing:0;font-stretch:100%}
+.np-mini{width:32px;height:32px;margin-right:14px}
+.left.np-open .np-mini{display:none}
+.np-stage{display:grid;place-items:end center;padding:2px 16px 16px}
+.np-cover{position:relative;width:min(100%,602px);aspect-ratio:1;border:1px solid var(--line);border-radius:6px;overflow:hidden;
   background:var(--row);container-type:inline-size}
 .np-art{position:absolute;inset:0;display:grid;place-items:center}
 .np-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
@@ -153,20 +180,18 @@ input[type=range]{flex:1;min-width:120px;accent-color:var(--accent);padding:0}
 .np-cover.is-fs .np-btn{width:48px;height:48px}
 .np-cover.is-fs .np-main{width:70px;height:70px}
 .np-cover.is-fs .np-small{width:40px;height:40px}
-.np-meta{display:flex;flex-direction:column;gap:2px;min-width:0;text-align:center}
-.np-status{font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.np-status{flex:none;font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .np-status.live{color:var(--accent)}
 .np-status.live::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;margin-right:7px;vertical-align:1px;animation:pulse 1.4s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.25}}
-.np-name{font-weight:750;font-size:18px;font-stretch:105%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.np-url{font:400 12px var(--f-mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.np-name{min-width:0;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (hover:none){
   .np-ctl{opacity:1}
 }
 @media (min-width:861px){
-  .np{flex:1;min-height:300px}
+  .left.np-open .np{flex:1;min-height:300px}
   .np-stage{flex:1;min-height:0;container-type:size}
-  .np-cover{width:min(100cqw,100cqh)}
+  .np-cover{width:min(100cqw,100cqh,602px)}
   /* Containment bi zarobio position:fixed unutar panela. */
   .np.is-fs .np-stage{container-type:normal}
 }

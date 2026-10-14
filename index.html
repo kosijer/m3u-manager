@@ -29,8 +29,13 @@
 </header>
 
 <main>
-  <section class="panel left" aria-labelledby="formTitle">
-    <div class="phead"><h2 id="formTitle">Nova stanica</h2><span class="tag" id="modeTag" hidden></span></div>
+  <section class="panel left" id="leftPanel" aria-label="Stanica i preslušavanje">
+    <div class="phead acc-head">
+      <h2><button class="acc-btn" type="button" id="formToggle" aria-expanded="true" aria-controls="form">
+        <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+        <span id="formTitle">Nova stanica</span><span class="tag" id="modeTag" hidden></span>
+      </button></h2>
+    </div>
     <form id="form" class="pbody form" novalidate>
       <input id="fName" type="text" autocomplete="off" placeholder="Naziv stanice" aria-label="Naziv stanice">
       <input id="fUrl" class="mono" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="Link ka stanici (https://…)" aria-label="Link ka stanici">
@@ -58,24 +63,31 @@
         <div id="cropper" hidden>
           <div class="stage" id="stageBox"><canvas id="cv" width="600" height="600" aria-label="Pregled logotipa. Prevlačenjem pomeraš sliku."></canvas><span class="px" id="cropSize"></span></div>
           <div class="ctl">
-            <div class="r">
-              <label for="zoom">Zum</label>
-              <input id="zoom" type="range" min="0.25" max="4" step="0.005" value="1">
+            <div class="r zoomrow">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8M8 10.5h5M10.5 8v5"/></svg>
+              <input id="zoom" type="range" min="0.25" max="4" step="0.005" value="1" aria-label="Zum">
             </div>
-            <div class="r">
+            <div class="r tools">
               <div class="seg" role="group" aria-label="Uklapanje">
-                <button type="button" id="btnFit">Uklopi</button>
-                <button type="button" id="btnFill">Popuni</button>
+                <button type="button" class="ico" id="btnFit" title="Uklopi celu sliku" aria-label="Uklopi">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="6" y="9.5" width="12" height="5" rx=".5" fill="currentColor" stroke="none"/></svg>
+                </button>
+                <button type="button" class="ico" id="btnFill" title="Popuni ceo okvir" aria-label="Popuni">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="6" y="6" width="12" height="12" rx="1" fill="currentColor" stroke="none"/></svg>
+                </button>
               </div>
               <div class="seg" id="bgSel" role="group" aria-label="Pozadina">
-                <button type="button" data-bg="transparent" aria-pressed="true">Providna</button>
-                <button type="button" data-bg="white" aria-pressed="false">Bela</button>
-                <button type="button" data-bg="black" aria-pressed="false">Crna</button>
+                <button type="button" class="ico" data-bg="transparent" aria-pressed="true" title="Providna pozadina" aria-label="Providna"><span class="sw sw-t"></span></button>
+                <button type="button" class="ico" data-bg="white" aria-pressed="false" title="Bela pozadina" aria-label="Bela"><span class="sw sw-w"></span></button>
+                <button type="button" class="ico" data-bg="black" aria-pressed="false" title="Crna pozadina" aria-label="Crna"><span class="sw sw-b"></span></button>
               </div>
-            </div>
-            <div class="r">
-              <button type="button" class="btn small" id="btnDlPng">Preuzmi PNG</button>
-              <button type="button" class="btn small" id="btnRemoveImg">Ukloni sliku</button>
+              <span class="grow"></span>
+              <button type="button" class="btn small ico" id="btnDlPng" title="Preuzmi PNG" aria-label="Preuzmi PNG">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>
+              </button>
+              <button type="button" class="btn small ico" id="btnRemoveImg" title="Ukloni sliku" aria-label="Ukloni sliku">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l.9 12.1a1.5 1.5 0 0 0 1.5 1.4h6.2a1.5 1.5 0 0 0 1.5-1.4L17.5 7M10 11v6M14 11v6"/></svg>
+              </button>
             </div>
           </div>
         </div>
@@ -89,12 +101,15 @@
     </form>
 
     <div class="np" id="np" role="region" aria-label="Preslušavanje">
-      <div class="np-meta">
-        <div class="np-status" id="npStatus" aria-live="polite"></div>
-        <div class="np-name" id="npName"></div>
-        <div class="np-url" id="npUrl"></div>
+      <div class="phead acc-head">
+        <h2><button class="acc-btn" type="button" id="npToggle" aria-expanded="false" aria-controls="npBody">
+          <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+          <span>Preslušavanje</span>
+          <span class="np-sub"><span class="np-status" id="npStatus" aria-live="polite"></span><span class="np-name" id="npName"></span></span>
+        </button></h2>
+        <button class="play np-mini" type="button" id="npMiniPlay"></button>
       </div>
-      <div class="np-stage">
+      <div class="np-stage" id="npBody">
         <div class="np-cover" id="npCover">
           <div class="np-art" id="npArt"></div>
           <div class="np-ctl">

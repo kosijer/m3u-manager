@@ -1,6 +1,7 @@
 import { initials } from '../lib/text.js';
 import { findStation, state } from '../state.js';
 import { onPlayerChange, play, playerState, stop, toggle } from '../services/player.js';
+import { openSection } from './accordion.js';
 import { els, loadThumb } from './dom.js';
 import { enterFullscreenIcon, exitFullscreenIcon, nextIcon, pauseIcon, playIcon, prevIcon } from './icons.js';
 
@@ -86,10 +87,13 @@ export function renderNowPlaying() {
   els.np.classList.toggle('empty', !s);
   renderArt(s);
 
-  els.npPlay.dataset.state = status;
   const action = status === 'idle' ? 'Pusti' : 'Zaustavi';
-  els.npPlay.setAttribute('aria-label', s ? `${action} ${s.name}` : action);
-  els.npPlay.title = `${action} (razmak)`;
+  for (const btn of [els.npPlay, els.npMiniPlay]) {
+    btn.dataset.state = status;
+    btn.setAttribute('aria-label', s ? `${action} ${s.name}` : action);
+    btn.title = `${action} (razmak)`;
+  }
+  els.npMiniPlay.hidden = !s;
   els.npPrev.disabled = els.npNext.disabled = n < 2;
 
   els.npStatus.classList.toggle('live', status === 'playing');
@@ -98,8 +102,8 @@ export function renderNowPlaying() {
     : status === 'loading' ? 'Učitavam…'
     : `Stanica ${state.stations.indexOf(s) + 1} od ${n}`;
   els.npName.textContent = s?.name ?? '';
+  els.npName.title = s?.url ?? '';
   els.npFsName.textContent = s?.name ?? '';
-  els.npUrl.textContent = s?.url ?? '';
 
   if (!s && fullscreen) setFullscreenUI(false);
   updateMediaSession(s, status);
@@ -143,6 +147,7 @@ export async function toggleFullscreen() {
     return;
   }
   if (!currentStation()) return;
+  openSection('np');
   setFullscreenUI(true);
   // Bez Fullscreen API-ja (npr. iPhone) ostaje prikaz preko celog prozora.
   await document.documentElement.requestFullscreen?.().catch(() => {});
@@ -188,12 +193,15 @@ export function initNowPlaying() {
   els.npPrev.innerHTML = prevIcon(16);
   els.npNext.innerHTML = nextIcon(16);
   els.npPlay.innerHTML = playIcon(22) + pauseIcon(21);
+  els.npMiniPlay.innerHTML = playIcon(14) + pauseIcon(13);
   setFullscreenUI(false);
   els.npPlay.addEventListener('click', playPause);
+  els.npMiniPlay.addEventListener('click', playPause);
   els.npPrev.addEventListener('click', prevStation);
   els.npNext.addEventListener('click', nextStation);
   els.npFull.addEventListener('click', toggleFullscreen);
-  document.addEventListener('keydown', onKeydown);
+  // Capture: Esc koji zatvara ceo ekran ne sme da stigne i do forme (gde poništava izmenu).
+  document.addEventListener('keydown', onKeydown, true);
 
   for (const type of ['pointermove', 'pointerdown']) {
     els.npCover.addEventListener(type, () => { if (fullscreen) wake(); });

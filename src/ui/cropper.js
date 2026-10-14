@@ -2,6 +2,7 @@ import { LOGO_SIZE } from '../config.js';
 import { dataUrlToBlob, downloadBlob } from '../lib/blob.js';
 import { slugify } from '../lib/text.js';
 import { selectedStation } from '../state.js';
+import { openSection } from './accordion.js';
 import { els, loadThumb, toast } from './dom.js';
 
 const MAX_ZOOM = 4;
@@ -91,6 +92,7 @@ function loadIntoCropper(src, { cors = false, objectUrl = false } = {}) {
       els.zoom.min = String(fit);
       els.zoom.value = String(fit);
       if (!wasActive) showCropper(true);
+      openSection('form');
       drawPreview();
       resolve();
     };
