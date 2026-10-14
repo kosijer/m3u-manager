@@ -1,30 +1,39 @@
 /**
  * Preslušavanje jedne stanice u isto vreme. HLS (.m3u8) ide preko hls.js tamo gde browser
  * nema ugrađenu podršku (Chrome, Firefox); hls.js se učitava tek kad zatreba.
+ * Pušta se kroz <video>, pa stanice koje imaju i sliku mogu da je prikažu (videoElement).
  */
 
 const LOAD_TIMEOUT_MS = 15_000;
 
-const audio = new Audio();
-audio.preload = 'none';
+const media = document.createElement('video');
+media.preload = 'none';
+// Bez ovoga iPhone otvara sopstveni plejer preko celog ekrana.
+media.playsInline = true;
+media.setAttribute('playsinline', '');
+media.disableRemotePlayback = true;
+
+/** Element u kome se vidi slika; postavlja ga UI. */
+export const videoElement = media;
 
 let hls = null;
 /** @type {{ id: string, url: string } | null} */
 let current = null;
 /** 'idle' | 'loading' | 'playing' */
 let status = 'idle';
+let hasVideo = false;
 let loadTimer;
 const listeners = new Set();
 
 /**
  * `error` i `failedId` postoje samo kad puštanje ne uspe.
- * @param {(e: { id: string | null, url: string | null, status: string, error?: string, failedId?: string }) => void} fn
+ * @param {(e: { id: string | null, url: string | null, status: string, video: boolean, error?: string, failedId?: string }) => void} fn
  */
 export function onPlayerChange(fn) {
   listeners.add(fn);
 }
 
-export const playerState = () => ({ id: current?.id ?? null, url: current?.url ?? null, status });
+export const playerState = () => ({ id: current?.id ?? null, url: current?.url ?? null, status, video: hasVideo });
 
 function emit(failure) {
   const e = { ...playerState(), ...failure };
@@ -38,7 +47,7 @@ function setStatus(next) {
 }
 
 const isHlsUrl = url => /\.m3u8(?:[?#]|$)/i.test(url);
-const nativeHls = () => audio.canPlayType('application/vnd.apple.mpegurl') !== '';
+const nativeHls = () => media.canPlayType('application/vnd.apple.mpegurl') !== '';
 
 function describeError(url, err) {
   if (location.protocol === 'https:' && /^http:/i.test(url)) {
@@ -53,9 +62,10 @@ function describeError(url, err) {
 function teardown() {
   clearTimeout(loadTimer);
   if (hls) { hls.destroy(); hls = null; }
-  audio.pause();
-  audio.removeAttribute('src');
-  audio.load();
+  hasVideo = false;
+  media.pause();
+  media.removeAttribute('src');
+  media.load();
 }
 
 export function stop() {
@@ -88,14 +98,15 @@ export async function play(id, url) {
       const { default: Hls } = await import('hls.js/light');
       if (current !== token) return;
       if (!Hls.isSupported()) throw new Error('HLS nije podržan');
-      hls = new Hls();
+      // Kad je slika mala ili sakrivena, bira se najslabiji kvalitet (manje podataka).
+      hls = new Hls({ capLevelToPlayerSize: true });
       hls.on(Hls.Events.ERROR, (_, data) => { if (data.fatal) fail(token, { hls: data }); });
       hls.loadSource(url);
-      hls.attachMedia(audio);
+      hls.attachMedia(media);
     } else {
-      audio.src = url;
+      media.src = url;
     }
-    await audio.play();
+    await media.play();
   } catch (err) {
     // AbortError znači da je puštanje prekinuto novim play() ili stop().
     if (err?.name !== 'AbortError') fail(token, err);
@@ -107,12 +118,20 @@ export function toggle(id, url) {
   else play(id, url);
 }
 
-audio.addEventListener('playing', () => {
+media.addEventListener('playing', () => {
   if (!current) return;
   clearTimeout(loadTimer);
   setStatus('playing');
 });
-audio.addEventListener('waiting', () => { if (current) setStatus('loading'); });
-audio.addEventListener('error', () => {
-  if (current && !hls) fail(current, audio.error);
+media.addEventListener('waiting', () => { if (current) setStatus('loading'); });
+for (const type of ['loadedmetadata', 'resize']) {
+  media.addEventListener(type, () => {
+    const next = !!current && media.videoWidth > 0;
+    if (next === hasVideo) return;
+    hasVideo = next;
+    emit();
+  });
+}
+media.addEventListener('error', () => {
+  if (current && !hls) fail(current, media.error);
 });

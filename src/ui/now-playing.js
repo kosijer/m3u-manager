@@ -1,6 +1,6 @@
 import { initials } from '../lib/text.js';
 import { findStation, state } from '../state.js';
-import { onPlayerChange, play, playerState, stop, toggle } from '../services/player.js';
+import { onPlayerChange, play, playerState, stop, toggle, videoElement } from '../services/player.js';
 import { currentTrack, onTrackChange, watchTrack } from '../services/track.js';
 import { openSection } from './accordion.js';
 import { els, loadThumb } from './dom.js';
@@ -91,6 +91,7 @@ export function renderNowPlaying() {
 
   els.np.classList.toggle('empty', !s);
   renderArt(s);
+  els.npCover.classList.toggle('has-video', status !== 'idle' && p.video);
 
   const action = status === 'idle' ? 'Pusti' : 'Zaustavi';
   for (const btn of [els.npPlay, els.npMiniPlay]) {
@@ -205,6 +206,9 @@ export function initNowPlaying() {
   els.npNext.innerHTML = nextIcon(16);
   els.npPlay.innerHTML = playIcon(22) + pauseIcon(21);
   els.npMiniPlay.innerHTML = playIcon(14) + pauseIcon(13);
+  videoElement.className = 'np-video';
+  videoElement.setAttribute('aria-hidden', 'true');
+  els.npArt.after(videoElement);
   setFullscreenUI(false);
   els.npPlay.addEventListener('click', playPause);
   els.npMiniPlay.addEventListener('click', playPause);
