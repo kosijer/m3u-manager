@@ -6,6 +6,11 @@
 <meta name="description" content="Pravljenje i uređivanje .m3u plejlisti internet radio stanica">
 <title>M3U Studio</title>
 <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="M3U Studio">
+<meta name="theme-color" content="#F5F7F2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#172019" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -17,6 +22,10 @@
   <div class="brand"><span class="mark">M3U</span><span class="word">Studio</span></div>
   <div class="bar-right">
     <span class="status" id="status" role="status"></span>
+    <button class="btn ghost" id="btnInstall" type="button" title="Instaliraj M3U Studio kao aplikaciju (radi i bez interneta)" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 7.5v6m0 0-2.5-2.5M12 13.5l2.5-2.5"/></svg>
+      <span class="lbl hide-sm">Instaliraj</span>
+    </button>
     <button class="btn ghost" id="btnSettings" type="button" title="Podešavanje upload-a slika">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
       <span class="lbl hide-sm">Upload slika</span>
@@ -144,7 +153,7 @@
         <button class="btn small" type="button" id="btnHistClear"><span class="lbl">Obriši</span></button>
       </span>
     </div>
-    <input id="importInput" type="file" accept=".m3u,.m3u8,.txt,audio/x-mpegurl,application/vnd.apple.mpegurl" hidden>
+    <input id="importInput" type="file" multiple accept=".m3u,.m3u8,.txt,audio/x-mpegurl,application/vnd.apple.mpegurl" hidden>
     <div class="view" id="plView">
       <div class="ptabs" id="plTabs" role="group" aria-label="Plejliste"></div>
       <div class="fnrow">

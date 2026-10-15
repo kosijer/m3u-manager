@@ -14,9 +14,10 @@ Alat za pravljenje i uređivanje `.m3u` plejlisti internet radio stanica. Stati�
 - **Naziv pesme:** dok stanica svira, u zaglavlju pregleda (i na celom ekranu) piše pesma koja trenutno ide, ako je stanica šalje. Potreban je mali Cloudflare Worker, vidi [Naziv pesme](#naziv-pesme-cloudflare-worker).
 - **Istorija pesama:** desni panel ima prekidač **Plejlista / Istorija**. Svaka nova pesma se upisuje sa nazivom stanice i vremenom (poslednjih 500, čuva se u pregledaču). Pesme su grupisane po danima, mogu da se pretražuju, a uz svaku su linkovi za pretragu na YouTube-u i Spotify-u. Cela istorija se preuzima kao CSV ili briše.
 - **Video:** ako stream ima i sliku (npr. HLS TV kanal), u pregledu se umesto loga prikazuje video, i na celom ekranu. Ništa ne treba označavati u plejlisti, prepoznaje se samo. Pazi na protok: video stream troši mnogo više podataka nego radio (primer `https://origin.streamnerd.nl/operator/operator/chunks.m3u8` oko 2 GB na sat), i to i kad je pregled zatvoren, jer su zvuk i slika u istom streamu.
+- **Instalacija kao aplikacija (PWA):** svoj prozor, ikonica, rad bez interneta, otvaranje `.m3u` fajlova dvoklikom. Vidi [Instalacija kao aplikacija](#instalacija-kao-aplikacija-pwa).
 - **Poruke** (greške, potvrde) se pojavljuju kao snackbar u donjem desnom uglu; klik ga zatvara. HLS (`.m3u8`) radi i u Chrome-u i Firefox-u preko `hls.js`, koji se učitava tek kad zatreba. Na https sajtu (GitHub Pages) browser blokira `http://` streamove, a za HLS server mora da dozvoli CORS.
 - **Više plejlisti u tabovima:** iznad liste su tabovi, svaki tab je posebna plejlista. **+** otvara novu, **×** (ili srednji klik) zatvara; ako plejlista ima stanice koje nisu sačuvane u fajl, traži se drugi klik. Ime taba je ime fajla (polje "Fajl"). Stanica koja svira nastavlja da svira i kad se pređe na drugi tab.
-- **Uvoz postojećeg `.m3u`** (dugme ili prevlačenje fajla na desni panel). Ako tekuća plejlista nije prazna, bira se: otvori u novom tabu, zameni listu ili dodaj na kraj. Dodatni atributi (`tvg-id`, `group-title`...) i `#EXTVLCOPT` linije se čuvaju pri izvozu.
+- **Uvoz postojećeg `.m3u`** (dugme ili prevlačenje fajla na desni panel). Ako tekuća plejlista nije prazna, bira se: otvori u novom tabu, zameni listu ili dodaj na kraj. Više fajlova odjednom otvara svaki u svom tabu. Dodatni atributi (`tvg-id`, `group-title`...) i `#EXTVLCOPT` linije se čuvaju pri izvozu.
 - **Čuvanje:** sve plejliste se automatski čuvaju u pregledaču (`localStorage`) i vraćaju pri sledećem otvaranju. Dugme "Sačuvaj plejlistu" preuzima tekuću kao `.m3u` fajl; dok to nije urađeno posle poslednje izmene, tab ima tačku, a gore piše "Nije sačuvano u fajl". Postoje i kopiranje teksta i pregled M3U teksta.
 
 Izlazni format:
@@ -88,6 +89,18 @@ Jednom podesi na GitHub-u: **Settings, Pages, Build and deployment, Source: GitH
 Ako ipak želiš ključ ugrađen u javni build: dodaj ga u **Settings, Secrets and variables, Actions** kao `VITE_IMGBB_API_KEY` i otkomentariši odgovarajuću liniju u workflow-u. Podrazumevani servis može da se zada kao repo varijabla `VITE_UPLOAD_PROVIDER`.
 
 Aplikacija koristi relativne putanje (`base: './'` u `vite.config.js`), pa radi i na Vercel-u, Netlify-ju ili bilo kom statičnom hostingu (Build Command `npm run build`, Output Directory `dist`).
+
+## Instalacija kao aplikacija (PWA)
+
+Sajt može da se instalira kao aplikacija: dobija svoj prozor (bez adresne trake i tabova pregledača), ikonicu u Dock-u / Start meniju / na početnom ekranu telefona, i otvara se i bez interneta (plejliste mogu da se menjaju; streamovi, upload i naziv pesme, naravno, traže mrežu).
+
+- **Chrome / Edge (računar, Android):** dugme **Instaliraj** u gornjoj traci (pojavi se kad pregledač dozvoli instalaciju) ili ikonica za instalaciju u adresnoj traci.
+- **Safari na Mac-u:** **File, Add to Dock**.
+- **iPhone / iPad:** u Safari-ju **Podeli, Dodaj na početni ekran**.
+
+Posle instalacije u Chrome-u i Edge-u na računaru, `.m3u` fajlovi mogu da se otvaraju dvoklikom ili sa "Otvori pomoću" (M3U Studio). Na Androidu se aplikacija pojavljuje u meniju **Podeli**: podeljen link stanice upisuje se u formu za novu stanicu.
+
+Nova verzija sajta stiže čim se aplikacija otvori sa internetom (stranica se uvek prvo traži sa mreže, a keš je rezerva bez mreže). Service worker se pravi samo pri build-u (`dist/sw.js`); `npm run dev` ga ne koristi, da se izmene odmah vide.
 
 ## Naziv pesme (Cloudflare Worker)
 
@@ -197,6 +210,9 @@ Ključ nije unet ili upload nije prošao. Podesi ključ pa klikni oznaku na stan
 **"Taj sajt ne dozvoljava da se slika učita u pregledač"**
 Dugme "Kropuj" radi samo za slike sa sajtova koji dozvoljavaju CORS. Sačuvaj sliku na računar (desni klik, Save image as) i prevuci je u polje za logo.
 
+**Instalirana aplikacija prikazuje staru verziju**
+Zatvori i ponovo otvori aplikaciju dok si na internetu. Ako i dalje ne pomaže, u pregledaču otvori sajt, pa **DevTools, Application, Service workers, Unregister** i osveži stranicu.
+
 **Nestale plejliste**
 Plejliste se čuvaju samo u pregledaču u kome su napravljene (drugi pregledač ili računar ih ne vidi). U privatnom prozoru ili posle brisanja podataka sajta se ne pamte; tada uvezi `.m3u` fajl ponovo. Ako pregledač nema mesta (mnogo logotipa koji čekaju upload), aplikacija to javlja porukom i pita pre zatvaranja stranice.
 
@@ -204,8 +220,10 @@ Plejliste se čuvaju samo u pregledaču u kome su napravljene (drugi pregledač 
 
 ```
 index.html                 markup
-public/favicon.svg
+public/                    favicon, ikonice aplikacije, manifest.webmanifest (PWA)
+vite.config.js             build; pravi dist/sw.js sa spiskom fajlova
 src/
+  sw.js                    service worker (keš za rad bez interneta)
   main.js                  pokretanje: vraća podešavanja i plejliste, vezuje događaje
   config.js                .env vrednosti i konstante
   state.js                 stanje aplikacije, tabovi (plejliste), podešavanje upload-a
@@ -226,6 +244,7 @@ src/
     dom.js                 els (svi elementi sa id-jem), toast, dugme sa potvrdom
     status.js              gornja traka, brojač, odloženo čuvanje plejlisti
     tabs.js                tabovi plejlisti: novi, prelazak, zatvaranje
+    pwa.js                 instalacija, otvaranje .m3u iz sistema, link iz menija "Podeli"
     accordion.js           leva kolona: otvorena je forma ili pregled stanice
     form.js                forma za dodavanje i izmenu stanice
     cropper.js             kropper za logo (600x600 PNG)

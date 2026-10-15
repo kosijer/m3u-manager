@@ -29,12 +29,28 @@ export function showPlaylist() {
   persistDraft();
 }
 
-export async function importFile(file) {
-  if (file.type.startsWith('image/')) { toast('Ovde ide .m3u fajl. Slike prevuci u polje za logo.', 'err'); return; }
+async function readPlaylist(file) {
+  if (file.type.startsWith('image/')) { toast('Ovde ide .m3u fajl. Slike prevuci u polje za logo.', 'err'); return null; }
   let text;
-  try { text = await file.text(); } catch { toast('Fajl nije moguće pročitati.', 'err'); return; }
+  try { text = await file.text(); } catch { toast('Fajl nije moguće pročitati: ' + file.name, 'err'); return null; }
   const result = parseM3U(text);
-  if (!result.stations.length) { toast('U fajlu nema nijedne stanice.', 'err'); return; }
+  if (!result.stations.length) { toast('U fajlu nema nijedne stanice: ' + file.name, 'err'); return null; }
+  return result;
+}
+
+/** Jedan fajl pita šta da radi sa njim; više fajlova se otvara svaki u svom tabu. */
+export async function importFiles(files) {
+  const list = [...files];
+  if (list.length === 1) { importFile(list[0]); return; }
+  for (const file of list) {
+    const result = await readPlaylist(file);
+    if (result) applyImport(result, file.name, state.stations.length ? 'tab' : 'replace');
+  }
+}
+
+async function importFile(file) {
+  const result = await readPlaylist(file);
+  if (!result) return;
   showView('playlist');
   if (state.stations.length) {
     pendingImport = { result, name: file.name };
@@ -121,8 +137,7 @@ function initFileDrop() {
     e.preventDefault();
     depth = 0;
     panel.classList.remove('dropping');
-    const file = e.dataTransfer.files[0];
-    if (file) importFile(file);
+    importFiles(e.dataTransfer.files);
   });
   // Fajl pušten van zona za prevlačenje ne sme da otvori novu stranicu.
   addEventListener('dragover', e => e.preventDefault());
@@ -134,8 +149,7 @@ export function initPlaylist() {
   els.btnImport.addEventListener('click', pickFile);
   els.btnEmptyImport.addEventListener('click', pickFile);
   els.importInput.addEventListener('change', () => {
-    const file = els.importInput.files[0];
-    if (file) importFile(file);
+    importFiles(els.importInput.files);
     els.importInput.value = '';
   });
   for (const [btn, mode] of [[els.btnImpTab, 'tab'], [els.btnImpReplace, 'replace'], [els.btnImpAppend, 'append']]) {
