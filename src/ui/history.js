@@ -23,12 +23,16 @@ export function showView(name) {
   const history = name === 'history';
   els.plView.hidden = history;
   els.histView.hidden = !history;
-  els.plActions.hidden = history;
-  els.histActions.hidden = !history;
   els.countTag.hidden = history;
   els.histCount.hidden = !history;
-  els.viewPlaylist.setAttribute('aria-pressed', String(!history));
-  els.viewHistory.setAttribute('aria-pressed', String(history));
+  if (history) {
+    els.viewPlaylist.removeAttribute('aria-current');
+    els.viewHistory.setAttribute('aria-current', 'page');
+  } else {
+    els.viewHistory.removeAttribute('aria-current');
+    els.viewPlaylist.setAttribute('aria-current', 'page');
+  }
+  document.body.classList.toggle('view-history', history);
   if (history) renderHistory();
 }
 

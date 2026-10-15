@@ -12,7 +12,7 @@ Alat za pravljenje i uređivanje `.m3u` plejlisti internet radio stanica. Stati�
 - **Lista stanica** sa prevlačenjem za promenu redosleda. Ručka ima i tastaturu (strelice gore i dole kad je fokusirana). Klik na stanicu otvara izmenu, sa poljem "Mesto u listi" i brisanjem.
 - **Preslušavanje:** dugme ▶ na svakoj stanici pušta stream (jedna stanica u isto vreme). Leva kolona je harmonika: otvorena je ili forma (dok se dodaje ili menja stanica) ili veliki pregled trenutne stanice u punoj veličini 600x600, poravnat uz dno ekrana; zatvoren pregled ostaje kao traka sa nazivom stanice i dugmetom ▶. Kad se pređe mišem preko loga, uz donju ivicu slike se pojave kontrole prethodna / pusti-zaustavi / sledeća i dugme za ceo ekran. Na celom ekranu se vidi samo logo, a kontrole se pojave kad se pomeri miš. Tastatura: **razmak** pušta i zaustavlja, **← / →** prelaze na prethodnu i sledeću stanicu, **F** uključuje i isključuje ceo ekran, **Esc** izlazi (sve dok je kursor van polja za unos). Rade i multimedijalni tasteri na tastaturi (play/pause, next, previous).
 - **Naziv pesme:** dok stanica svira, u zaglavlju pregleda (i na celom ekranu) piše pesma koja trenutno ide, ako je stanica šalje. Potreban je mali Cloudflare Worker, vidi [Naziv pesme](#naziv-pesme-cloudflare-worker).
-- **Istorija pesama:** desni panel ima prekidač **Plejlista / Istorija**. Svaka nova pesma se upisuje sa nazivom stanice i vremenom (poslednjih 500, čuva se u pregledaču). Pesme su grupisane po danima, mogu da se pretražuju, a uz svaku su linkovi za pretragu na YouTube-u i Spotify-u. Cela istorija se preuzima kao CSV ili briše.
+- **Istorija pesama:** u gornjoj navigaciji su **Plejlista** i **Istorija**. Svaka nova pesma se upisuje sa nazivom stanice i vremenom (poslednjih 500, čuva se u pregledaču). Pesme su grupisane po danima, mogu da se pretražuju, a uz svaku su linkovi za pretragu na YouTube-u i Spotify-u. Cela istorija se preuzima kao CSV ili briše.
 - **Video:** ako stream ima i sliku (npr. HLS TV kanal), u pregledu se umesto loga prikazuje video, i na celom ekranu. Ništa ne treba označavati u plejlisti, prepoznaje se samo. Pazi na protok: video stream troši mnogo više podataka nego radio (primer `https://origin.streamnerd.nl/operator/operator/chunks.m3u8` oko 2 GB na sat), i to i kad je pregled zatvoren, jer su zvuk i slika u istom streamu.
 - **Instalacija kao aplikacija (PWA):** svoj prozor, ikonica, rad bez interneta, otvaranje `.m3u` fajlova dvoklikom. Vidi [Instalacija kao aplikacija](#instalacija-kao-aplikacija-pwa).
 - **Poruke** (greške, potvrde) se pojavljuju kao snackbar u donjem desnom uglu; klik ga zatvara. HLS (`.m3u8`) radi i u Chrome-u i Firefox-u preko `hls.js`, koji se učitava tek kad zatreba. Na https sajtu (GitHub Pages) browser blokira `http://` streamove, a za HLS server mora da dozvoli CORS.
@@ -61,7 +61,7 @@ npm run preview   # lokalni pregled build-a
 
 Ključ za upload slika može da se zada na dva načina:
 
-1. **U aplikaciji** (dugme **Upload slika**). Čuva se samo u tom browseru (`localStorage`). Ovo je preporučeno za javni sajt.
+1. **U aplikaciji** (ikonica zupčanika gore desno). Čuva se samo u tom browseru (`localStorage`). Ovo je preporučeno za javni sajt.
 2. **U `.env` fajlu**, za lokalni rad:
 
    ```bash
@@ -168,7 +168,7 @@ ImgBB je besplatan hosting za slike sa API-jem. Ključ je potreban samo za autom
 2. Otvori **https://api.imgbb.com/**.
 3. Klikni **Get API key**. Ako nisi prijavljen, tražiće prijavu.
 4. Kopiraj ključ (dugačak niz slova i brojeva).
-5. U M3U Studiju klikni **Upload slika** (gore desno), izaberi **ImgBB**, nalepi ključ u polje i klikni **Sačuvaj**. (Ili ga upiši u `.env`, vidi gore.)
+5. U M3U Studiju klikni zupčanik (gore desno), izaberi **ImgBB**, nalepi ključ u polje i klikni **Sačuvaj**. (Ili ga upiši u `.env`, vidi gore.)
 
 Odmah probaj: dodaj stanicu sa slikom. Ako se u listi pojavi logo bez oznake "Upload ↻", upload radi.
 
@@ -182,7 +182,7 @@ Napomene:
 1. Prijavi se na imgur.com.
 2. Registruj aplikaciju na **https://api.imgur.com/oauth2/addclient**. Tip: *Anonymous usage without user authorization*, bez callback adrese.
 3. Kopiraj **Client ID**.
-4. U aplikaciji: **Upload slika**, servis **Imgur**, nalepi Client ID.
+4. U aplikaciji: zupčanik → servis **Imgur**, nalepi Client ID.
 
 Imgur ima stroža ograničenja i neke mreže ga blokiraju, pa je ImgBB podrazumevan izbor.
 

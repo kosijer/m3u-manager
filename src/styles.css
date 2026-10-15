@@ -32,12 +32,18 @@ a{color:var(--teal)}
 code{font-family:var(--f-mono);font-size:.92em}
 
 /* Gornja traka */
-.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+.bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
   padding:10px var(--gutter);min-height:56px;background:var(--panel);border-bottom:1px solid var(--line)}
-.brand{display:flex;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;flex:none}
 .mark{font:600 13px/1 var(--f-mono);letter-spacing:.04em;background:var(--accent);color:var(--accent-ink);padding:6px 7px;border-radius:3px}
 .word{font-weight:800;font-stretch:115%;letter-spacing:.04em;font-size:17px;text-transform:uppercase}
-.bar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.nav{display:flex;align-items:center;gap:4px}
+.nav-link{background:none;border:0;padding:6px 10px;border-radius:4px;cursor:pointer;font:600 14px var(--f-ui);color:var(--muted)}
+.nav-link:hover{color:var(--ink);background:var(--field)}
+.nav-link[aria-current=page]{color:var(--ink)}
+.nav-link:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.bar-right{display:flex;align-items:center;gap:8px;flex:none}
+.bar .btn.ico{width:36px;height:36px;padding:0}
 .status{font:500 12px var(--f-mono);color:var(--muted)}
 .status.dirty::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-right:7px}
 
@@ -58,7 +64,9 @@ main{padding:var(--gutter);display:grid;gap:var(--gutter);grid-template-columns:
   .left{overflow:auto}
   .view{flex:1}
   .listwrap{flex:1;min-height:0;overflow:auto}
+  body.view-history main{grid-template-columns:minmax(0,1fr)}
 }
+body.view-history .left{display:none}
 
 /* Dugmad */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;
@@ -205,18 +213,17 @@ input[type=range]{flex:1;min-width:120px;accent-color:var(--accent);padding:0}
 }
 
 /* Desni panel: plejlista ili istorija pesama */
-.views button{padding:6px 12px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-stretch:85%}
 .hgroup{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .view{display:flex;flex-direction:column;min-height:0}
 
-/* Lista: pretraga, ime fajla + sačuvaj, padajući meni */
+/* Lista: pretraga, ime fajla + sačuvaj, padajući meni, uvoz */
 .fnrow{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .fnrow input,.fnrow select{padding:7px 10px}
-.fnrow #listSearch{flex:1 1 140px;min-width:120px}
+.fnrow #listSearch,.fnrow #histSearch{flex:1 1 140px;min-width:120px}
 .fnrow .file-field{flex:1 1 160px;min-width:140px;display:flex;align-items:center;gap:6px}
 .fnrow .file-field #fFile{flex:1;min-width:0}
 .fnrow #plSelect{flex:0 1 160px;min-width:110px;max-width:220px;background:var(--field);border:1px solid var(--line);border-radius:4px}
-.fnrow #btnSave,.fnrow #btnPlAdd,.fnrow #btnPlClose{flex:none;width:32px;height:32px;padding:0}
+.fnrow #btnSave,.fnrow #btnPlAdd,.fnrow #btnPlClose,.fnrow #btnImport{flex:none;width:32px;height:32px;padding:0}
 .fnrow #btnPlAdd,.fnrow #btnPlClose{font-size:18px;line-height:1}
 .fnrow #btnPlClose .lbl{font-size:18px;line-height:1}
 .fnrow #btnPlClose.danger .lbl{font-size:14px;font-weight:700}
