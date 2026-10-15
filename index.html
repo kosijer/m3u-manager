@@ -40,6 +40,31 @@
 
 <main>
   <section class="panel left" id="leftPanel" aria-label="Stanica i preslušavanje">
+    <div class="np" id="np" role="region" aria-label="Preslušavanje">
+      <div class="phead acc-head">
+        <h2><button class="acc-btn" type="button" id="npToggle" aria-expanded="false" aria-controls="npBody">
+          <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+          <span>Preslušavanje</span>
+          <span class="np-sub"><span class="np-status" id="npStatus" aria-live="polite"></span><span class="np-name" id="npName"></span></span>
+        </button></h2>
+        <button class="play np-mini" type="button" id="npMiniPlay"></button>
+      </div>
+      <div class="np-stage" id="npBody">
+        <div class="np-cover" id="npCover">
+          <div class="np-art" id="npArt"></div>
+          <div class="np-ctl">
+            <div class="np-fs-info"><div class="np-fs-name" id="npFsName"></div><div class="np-fs-track" id="npFsTrack"></div></div>
+            <div class="np-btns" role="group" aria-label="Kontrole preslušavanja">
+              <button class="np-btn" type="button" id="npPrev" aria-label="Prethodna stanica" title="Prethodna stanica (←)"></button>
+              <button class="np-btn np-main" type="button" id="npPlay" data-state="idle"></button>
+              <button class="np-btn" type="button" id="npNext" aria-label="Sledeća stanica" title="Sledeća stanica (→)"></button>
+            </div>
+            <button class="np-btn np-small" type="button" id="npFull"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="phead acc-head">
       <h2><button class="acc-btn" type="button" id="formToggle" aria-expanded="true" aria-controls="form">
         <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
@@ -110,30 +135,6 @@
       </div>
     </form>
 
-    <div class="np" id="np" role="region" aria-label="Preslušavanje">
-      <div class="phead acc-head">
-        <h2><button class="acc-btn" type="button" id="npToggle" aria-expanded="false" aria-controls="npBody">
-          <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
-          <span>Preslušavanje</span>
-          <span class="np-sub"><span class="np-status" id="npStatus" aria-live="polite"></span><span class="np-name" id="npName"></span></span>
-        </button></h2>
-        <button class="play np-mini" type="button" id="npMiniPlay"></button>
-      </div>
-      <div class="np-stage" id="npBody">
-        <div class="np-cover" id="npCover">
-          <div class="np-art" id="npArt"></div>
-          <div class="np-ctl">
-            <div class="np-fs-info"><div class="np-fs-name" id="npFsName"></div><div class="np-fs-track" id="npFsTrack"></div></div>
-            <div class="np-btns" role="group" aria-label="Kontrole preslušavanja">
-              <button class="np-btn" type="button" id="npPrev" aria-label="Prethodna stanica" title="Prethodna stanica (←)"></button>
-              <button class="np-btn np-main" type="button" id="npPlay" data-state="idle"></button>
-              <button class="np-btn" type="button" id="npNext" aria-label="Sledeća stanica" title="Sledeća stanica (→)"></button>
-            </div>
-            <button class="np-btn np-small" type="button" id="npFull"></button>
-          </div>
-        </div>
-      </div>
-    </div>
   </section>
 
   <section class="panel right" id="rightPanel" aria-label="Plejlista i istorija pesama">

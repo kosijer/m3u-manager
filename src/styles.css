@@ -142,15 +142,17 @@ input[type=range]{flex:1;min-width:120px;accent-color:var(--accent);padding:0}
 .acc-btn .tag{text-transform:none;letter-spacing:0;font-weight:500}
 .chev{flex:none;color:var(--muted);transition:transform .15s ease}
 .acc-btn[aria-expanded=true] .chev{transform:rotate(90deg)}
-.left.np-open>.acc-head{border-bottom:0}
+/* Forma ispod: kad je otvoreno preslušavanje, zaglavlje forme ide na dno. */
+.left>.acc-head{border-top:1px solid var(--line)}
+.left.np-open>.acc-head{margin-top:auto;border-bottom:0}
 
-/* Preslušavanje: veliki pregled trenutne stanice ispod forme */
-.np{flex:none;display:flex;flex-direction:column;margin-top:auto;border-top:1px solid var(--line)}
+/* Preslušavanje: veliki pregled trenutne stanice iznad forme */
+.np{flex:none;display:flex;flex-direction:column}
 .np .acc-head{border-bottom:0}
 .np-sub{margin-left:auto;display:flex;align-items:baseline;gap:10px;min-width:0;text-transform:none;letter-spacing:0;font-stretch:100%}
 .np-mini{width:32px;height:32px;margin-right:14px}
 .left.np-open .np-mini{display:none}
-.np-stage{display:grid;place-items:end center;padding:2px 16px 16px}
+.np-stage{display:grid;place-items:center;padding:2px 16px 16px}
 .np-cover{position:relative;width:min(100%,602px);aspect-ratio:1;border:1px solid var(--line);border-radius:6px;overflow:hidden;
   background:var(--row);container-type:inline-size}
 .np-art{position:absolute;inset:0;display:grid;place-items:center}
