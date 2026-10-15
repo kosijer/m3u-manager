@@ -18,6 +18,7 @@ export const STORAGE_KEYS = {
   playlists: 'm3ustudio.playlists.v1',
   settings: 'm3ustudio.settings.v1',
   history: 'm3ustudio.history.v1',
+  favorites: 'm3ustudio.favorites.v1',
 };
 
 export const HISTORY_MAX = 500;

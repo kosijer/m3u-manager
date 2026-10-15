@@ -25,3 +25,6 @@ export const storePlaylists = data => write(STORAGE_KEYS.playlists, JSON.stringi
 
 export const loadHistory = () => readJson(STORAGE_KEYS.history);
 export const storeHistory = entries => write(STORAGE_KEYS.history, JSON.stringify(entries));
+
+export const loadFavorites = () => readJson(STORAGE_KEYS.favorites);
+export const storeFavorites = titles => write(STORAGE_KEYS.favorites, JSON.stringify(titles));

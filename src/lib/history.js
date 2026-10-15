@@ -51,10 +51,24 @@ export function dayLabel(ts, now = Date.now()) {
   return `${d.getDate()}. ${d.getMonth() + 1}. ${d.getFullYear()}.`;
 }
 
+/** Nazivi omiljenih pesama (isti naziv = ista pesma, preživljava brisanje istorije). */
+export function normalizeFavorites(raw) {
+  if (!Array.isArray(raw)) return [];
+  return [...new Set(raw.filter(t => typeof t === 'string' && t.trim()).map(t => t.trim()))];
+}
+
+export function toggleFavorite(list, title) {
+  return list.includes(title) ? list.filter(t => t !== title) : [title, ...list];
+}
+
 const csvField = v => (/[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
 
-export function toCsv(list) {
-  const rows = [['Vreme', 'Stanica', 'Pesma', 'Link'], ...list.map(e => [localStamp(e.at), e.station, e.title, e.url])];
+export function toCsv(list, favorites = []) {
+  const fav = new Set(favorites);
+  const rows = [
+    ['Vreme', 'Stanica', 'Pesma', 'Omiljena', 'Link'],
+    ...list.map(e => [localStamp(e.at), e.station, e.title, fav.has(e.title) ? 'da' : '', e.url]),
+  ];
   return rows.map(r => r.map(csvField).join(',')).join('\r\n') + '\r\n';
 }
 

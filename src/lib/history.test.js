@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addEntry, dayLabel, filterEntries, normalizeHistory, toCsv } from './history.js';
+import { addEntry, dayLabel, filterEntries, normalizeFavorites, normalizeHistory, toCsv, toggleFavorite } from './history.js';
 import { formatSongs } from './text.js';
 
 const MIN = 60_000;
@@ -43,8 +43,14 @@ describe('ostalo', () => {
 
   it('toCsv navodi polja sa zarezom i navodnicima', () => {
     const at = new Date(2026, 9, 15, 15, 12, 5).getTime();
-    const csv = toCsv([{ at, title: 'A, B "C"', station: 'Radio', url: 'https://x' }]);
-    expect(csv).toBe('Vreme,Stanica,Pesma,Link\r\n2026-10-15 15:12:05,Radio,"A, B ""C""",https://x\r\n');
+    const csv = toCsv([{ at, title: 'A, B "C"', station: 'Radio', url: 'https://x' }], ['A, B "C"']);
+    expect(csv).toBe('Vreme,Stanica,Pesma,Omiljena,Link\r\n2026-10-15 15:12:05,Radio,"A, B ""C""",da,https://x\r\n');
+  });
+
+  it('toggleFavorite i normalizeFavorites', () => {
+    expect(toggleFavorite([], 'A')).toEqual(['A']);
+    expect(toggleFavorite(['A', 'B'], 'A')).toEqual(['B']);
+    expect(normalizeFavorites(['  A ', 'A', '', 1, null])).toEqual(['A']);
   });
 
   it('dayLabel', () => {
