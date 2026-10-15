@@ -4,7 +4,7 @@ import { addEntry, dayLabel, filterEntries, localStamp, normalizeHistory, search
 import { formatSongs } from '../lib/text.js';
 import { onPlayerChange, playerState } from '../services/player.js';
 import { currentTrack, onTrackChange } from '../services/track.js';
-import { findStation } from '../state.js';
+import { findAnyStation } from '../state.js';
 import * as storage from '../storage.js';
 import { confirmButton, els, toast } from './dom.js';
 
@@ -107,7 +107,7 @@ function record(t) {
   const next = addEntry(entries, {
     at: Date.now(),
     title: t.title,
-    station: findStation(t.id)?.name ?? '',
+    station: findAnyStation(t.id)?.name ?? '',
     url: p.url ?? '',
   }, HISTORY_MAX);
   if (next === entries) return;

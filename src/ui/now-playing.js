@@ -1,5 +1,5 @@
 import { initials } from '../lib/text.js';
-import { findStation, state } from '../state.js';
+import { findAnyStation, findStation, state } from '../state.js';
 import { onPlayerChange, play, playerState, stop, toggle, videoElement } from '../services/player.js';
 import { currentTrack, onTrackChange, watchTrack } from '../services/track.js';
 import { openSection } from './accordion.js';
@@ -16,7 +16,8 @@ let metaKey = null;
 let flashTimer;
 
 function currentStation() {
-  let s = findStation(currentId);
+  // Stanica koja svira može da bude iz drugog taba.
+  let s = playerState().id === currentId ? findAnyStation(currentId) : findStation(currentId);
   if (!s) {
     s = state.stations[0] ?? null;
     currentId = s?.id ?? null;

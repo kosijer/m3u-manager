@@ -16,8 +16,12 @@ function readJson(key) {
 export const loadSettings = () => readJson(STORAGE_KEYS.settings);
 export const storeSettings = settings => write(STORAGE_KEYS.settings, JSON.stringify(settings));
 
+/** Nacrt iz verzije sa jednom plejlistom; čita se samo radi prenosa u tabove. */
 export const loadDraft = () => readJson(STORAGE_KEYS.draft);
-export const storeDraft = draft => write(STORAGE_KEYS.draft, JSON.stringify(draft));
+export const removeDraft = () => { try { localStorage.removeItem(STORAGE_KEYS.draft); } catch { /* privatni režim */ } };
+
+export const loadPlaylists = () => readJson(STORAGE_KEYS.playlists);
+export const storePlaylists = data => write(STORAGE_KEYS.playlists, JSON.stringify(data));
 
 export const loadHistory = () => readJson(STORAGE_KEYS.history);
 export const storeHistory = entries => write(STORAGE_KEYS.history, JSON.stringify(entries));

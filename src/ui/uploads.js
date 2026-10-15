@@ -1,11 +1,11 @@
 import { dataUrlToBlob } from '../lib/blob.js';
-import { canUpload, findStation, selectedStation, settings, state, uploadKey } from '../state.js';
+import { canUpload, findStation, playlistOf, selectedStation, settings, state, uploadKey } from '../state.js';
 import { describeUploadError, uploadImage } from '../services/upload.js';
 import { updateLogoThumb } from './cropper.js';
 import { els, toast } from './dom.js';
 import { renderList } from './list.js';
 import { openSettings } from './settings-dialog.js';
-import { markDirty } from './status.js';
+import { markDirty, persistDraft } from './status.js';
 
 /** Id-jevi stanica čiji se logo upravo šalje (sprečava dupli upload). */
 const inFlight = new Set();
@@ -21,11 +21,13 @@ async function uploadPending(station) {
   renderList();
   try {
     const url = await uploadLogo(dataUrlToBlob(dataUrl));
-    // Stanica je u međuvremenu mogla da dobije novu sliku ili da bude obrisana.
-    if (station.pending !== dataUrl || !state.stations.includes(station)) return;
+    // Stanica je u međuvremenu mogla da dobije novu sliku, da bude obrisana ili da se pređe na drugi tab.
+    const owner = playlistOf(station);
+    if (station.pending !== dataUrl || !owner) return;
     station.logo = url;
     station.pending = '';
-    markDirty();
+    if (owner.id === state.playlistId) markDirty();
+    else { owner.dirty = true; persistDraft(); }
     if (selectedStation() === station) {
       els.fLogo.value = url;
       updateLogoThumb();

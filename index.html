@@ -137,7 +137,6 @@
       <span class="grow"></span>
       <span class="hgroup" id="plActions">
         <button class="btn small" type="button" id="btnImport">Uvezi .m3u</button>
-        <button class="btn small" type="button" id="btnNew"><span class="lbl">Novo</span></button>
         <button class="btn small" type="button" id="btnCopy">Kopiraj</button>
       </span>
       <span class="hgroup" id="histActions" hidden>
@@ -147,6 +146,7 @@
     </div>
     <input id="importInput" type="file" accept=".m3u,.m3u8,.txt,audio/x-mpegurl,application/vnd.apple.mpegurl" hidden>
     <div class="view" id="plView">
+      <div class="ptabs" id="plTabs" role="group" aria-label="Plejliste"></div>
       <div class="fnrow">
         <label for="fFile">Fajl</label>
         <input id="fFile" class="mono" type="text" autocomplete="off" spellcheck="false" value="radio.m3u">
@@ -154,6 +154,7 @@
       </div>
       <div class="bar2" id="importBar" hidden>
         <span id="importText"></span>
+        <button class="btn small" type="button" id="btnImpTab">Otvori u novom tabu</button>
         <button class="btn small" type="button" id="btnImpReplace">Zameni listu</button>
         <button class="btn small" type="button" id="btnImpAppend">Dodaj na kraj</button>
         <button class="btn small ghost" type="button" id="btnImpCancel">Odustani</button>

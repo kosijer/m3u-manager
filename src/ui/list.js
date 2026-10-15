@@ -1,4 +1,4 @@
-import { findStation, moveStation, state } from '../state.js';
+import { findAnyStation, findStation, moveStation, state } from '../state.js';
 import { initials } from '../lib/text.js';
 import { onPlayerChange, playerState, stop as stopPlayer, toggle as togglePlayer } from '../services/player.js';
 import { els, loadThumb, toast } from './dom.js';
@@ -82,11 +82,11 @@ function updatePlayButtons(player) {
   }
 }
 
-/** Zaustavlja preslušavanje ako je stanica obrisana ili joj je promenjen link. */
+/** Zaustavlja preslušavanje ako je stanica obrisana ili joj je promenjen link (u bilo kom tabu). */
 function syncPlayer() {
   const p = playerState();
   if (!p.id) return;
-  const s = findStation(p.id);
+  const s = findAnyStation(p.id);
   if (!s || s.url !== p.url) stopPlayer();
 }
 
@@ -221,7 +221,7 @@ export function initList() {
   onPlayerChange(e => {
     updatePlayButtons(e);
     if (e.error) {
-      const s = findStation(e.failedId);
+      const s = findAnyStation(e.failedId);
       toast((s ? s.name + ': ' : '') + e.error, 'err');
     }
   });

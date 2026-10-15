@@ -15,6 +15,7 @@ export const NOWPLAYING_URL = (env.VITE_NOWPLAYING_URL || '').trim().replace(/\/
 
 export const STORAGE_KEYS = {
   draft: 'm3ustudio.draft.v1',
+  playlists: 'm3ustudio.playlists.v1',
   settings: 'm3ustudio.settings.v1',
   history: 'm3ustudio.history.v1',
 };

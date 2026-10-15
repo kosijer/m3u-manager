@@ -11,7 +11,7 @@
  */
 
 let counter = 0;
-export const newId = () => 's' + Date.now().toString(36) + (counter++).toString(36);
+export const newId = (prefix = 's') => prefix + Date.now().toString(36) + (counter++).toString(36);
 
 /** @returns {Station} */
 export function createStation(fields = {}) {

@@ -1,9 +1,11 @@
 import { DEFAULT_FILENAME, DEFAULT_PROVIDER, ENV_KEYS, PROVIDERS } from './config.js';
 import { DEFAULT_HEADER, serializeM3U } from './lib/m3u.js';
-import { normalizeStation } from './lib/station.js';
+import { createPlaylist, normalizePlaylist, uniqueFilename } from './lib/playlists.js';
 import * as storage from './storage.js';
 
+/** Aktivna plejlista (tab). Ostale su u `playlists`; aktivna se tamo upisuje pri promeni taba i čuvanju. */
 export const state = {
+  playlistId: '',
   /** @type {import('./lib/station.js').Station[]} */
   stations: [],
   header: DEFAULT_HEADER,
@@ -13,6 +15,9 @@ export const state = {
   /** Forma trenutno čuva stanicu (čeka upload loga). */
   busy: false,
 };
+
+/** Svi tabovi, redom. @type {import('./lib/playlists.js').Playlist[]} */
+export const playlists = [];
 
 export const settings = { provider: DEFAULT_PROVIDER, imgbb: '', imgur: '' };
 
@@ -27,8 +32,62 @@ export function moveStation(from, to) {
   return moved;
 }
 
-export function resetPlaylist() {
-  Object.assign(state, { stations: [], header: DEFAULT_HEADER, filename: DEFAULT_FILENAME, selectedId: null, dirty: false });
+/* ---------- tabovi ---------- */
+
+const activePlaylist = () => playlists.find(p => p.id === state.playlistId);
+
+function syncActive() {
+  const p = activePlaylist();
+  if (p) Object.assign(p, { header: state.header, filename: state.filename, stations: state.stations, dirty: state.dirty });
+}
+
+function load(p) {
+  Object.assign(state, { playlistId: p.id, header: p.header, filename: p.filename, stations: p.stations, dirty: p.dirty, selectedId: null });
+}
+
+/** Plejlista u kojoj je stanica (može biti i u tabu koji nije otvoren). */
+export function playlistOf(station) {
+  syncActive();
+  return playlists.find(p => p.stations.includes(station)) ?? null;
+}
+
+/** Traži stanicu u svim tabovima (npr. stanica koja svira iz drugog taba). */
+export function findAnyStation(id) {
+  if (!id) return undefined;
+  syncActive();
+  for (const p of playlists) {
+    const s = p.stations.find(x => x.id === id);
+    if (s) return s;
+  }
+  return undefined;
+}
+
+export function switchPlaylist(id) {
+  const next = playlists.find(p => p.id === id);
+  if (!next || id === state.playlistId) return;
+  syncActive();
+  load(next);
+}
+
+/** Otvara novi tab (prazan ili sa uvezenim stanicama) i prelazi na njega. */
+export function addPlaylist(fields = {}) {
+  syncActive();
+  const name = uniqueFilename(fields.filename || DEFAULT_FILENAME, playlists.map(p => p.filename));
+  const p = createPlaylist(name, { ...fields, filename: name });
+  const at = playlists.findIndex(x => x.id === state.playlistId);
+  playlists.splice(at + 1, 0, p);
+  load(p);
+  return p;
+}
+
+/** Zatvara tab. Poslednji tab se ne zatvara, nego postaje prazan. */
+export function closePlaylist(id) {
+  const i = playlists.findIndex(p => p.id === id);
+  if (i < 0) return;
+  syncActive();
+  playlists.splice(i, 1);
+  if (!playlists.length) playlists.push(createPlaylist(DEFAULT_FILENAME));
+  if (id === state.playlistId) load(playlists[Math.min(i, playlists.length - 1)]);
 }
 
 /* ---------- podešavanje upload-a ---------- */
@@ -49,20 +108,23 @@ export function updateSettings(next) {
   return storage.storeSettings(settings);
 }
 
-/* ---------- nacrt ---------- */
+/* ---------- čuvanje u pregledaču ---------- */
 
-export function saveDraft() {
-  const { header, filename, stations, dirty } = state;
-  return storage.storeDraft({ header, filename, stations, dirty });
+export function savePlaylists() {
+  syncActive();
+  return storage.storePlaylists({ activeId: state.playlistId, playlists });
 }
 
-/** Vraća broj vraćenih stanica (0 ako nema nesačuvanog nacrta). */
-export function restoreDraft() {
-  const d = storage.loadDraft();
-  if (!d || !d.dirty || !Array.isArray(d.stations) || !d.stations.length) return 0;
-  state.stations = d.stations.map(normalizeStation);
-  state.header = typeof d.header === 'string' && d.header ? d.header : DEFAULT_HEADER;
-  state.filename = typeof d.filename === 'string' && d.filename ? d.filename : DEFAULT_FILENAME;
-  state.dirty = true;
-  return state.stations.length;
+/** Vraća sve tabove. Prvi put preuzima nacrt iz verzije sa jednom plejlistom. */
+export function restorePlaylists() {
+  const saved = storage.loadPlaylists();
+  let list = Array.isArray(saved?.playlists) ? saved.playlists.map(p => normalizePlaylist(p, DEFAULT_FILENAME)) : [];
+  if (!saved) {
+    const draft = storage.loadDraft();
+    if (draft && Array.isArray(draft.stations) && draft.stations.length) list = [normalizePlaylist(draft, DEFAULT_FILENAME)];
+  }
+  if (!list.length) list = [createPlaylist(DEFAULT_FILENAME)];
+  playlists.splice(0, playlists.length, ...list);
+  load(list.find(p => p.id === saved?.activeId) ?? list[0]);
+  if (!saved && savePlaylists()) storage.removeDraft();
 }

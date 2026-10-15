@@ -1,22 +1,17 @@
 import { downloadBlob } from '../lib/blob.js';
 import { parseM3U } from '../lib/m3u.js';
 import { cleanFilename, formatCount } from '../lib/text.js';
-import { pendingCount, resetPlaylist, serialize, state } from '../state.js';
-import { confirmButton, els, toast } from './dom.js';
+import { addPlaylist, pendingCount, serialize, state } from '../state.js';
+import { els, toast } from './dom.js';
 import { fillForm } from './form.js';
 import { showView } from './history.js';
 import { renderList } from './list.js';
-import { persistDraft, updateUI } from './status.js';
+import { busyGuard, draftFailed, persistDraft, schedulePersist, updateUI } from './status.js';
+import { renderTabs } from './tabs.js';
 import { uploadAllPending } from './uploads.js';
 
-/** Uvezen fajl koji čeka odluku "Zameni listu" / "Dodaj na kraj". */
+/** Uvezen fajl koji čeka odluku "Novi tab" / "Zameni listu" / "Dodaj na kraj". */
 let pendingImport = null;
-
-function busyGuard() {
-  if (!state.busy) return false;
-  toast('Sačekaj da se završi slanje loga.', 'err');
-  return true;
-}
 
 function hideBars() {
   els.importBar.hidden = true;
@@ -24,7 +19,17 @@ function hideBars() {
   pendingImport = null;
 }
 
-async function importFile(file) {
+/** Prikazuje aktivnu plejlistu iz početka (posle promene taba). */
+export function showPlaylist() {
+  els.fFile.value = state.filename;
+  hideBars();
+  showView('playlist');
+  fillForm(null);
+  renderList();
+  persistDraft();
+}
+
+export async function importFile(file) {
   if (file.type.startsWith('image/')) { toast('Ovde ide .m3u fajl. Slike prevuci u polje za logo.', 'err'); return; }
   let text;
   try { text = await file.text(); } catch { toast('Fajl nije moguće pročitati.', 'err'); return; }
@@ -40,21 +45,21 @@ async function importFile(file) {
   }
 }
 
+const IMPORT_DONE = { tab: 'Otvoreno u novom tabu: ', replace: 'Uvezeno: ', append: 'Dodato na kraj: ' };
+
 function applyImport(result, name, mode) {
   if (busyGuard()) return;
-  if (mode === 'replace') {
+  if (mode === 'tab') {
+    addPlaylist({ stations: result.stations, header: result.header, filename: name });
+  } else if (mode === 'replace') {
     Object.assign(state, { stations: result.stations, header: result.header, filename: name, dirty: false });
-    els.fFile.value = name;
   } else {
     state.stations.push(...result.stations);
     state.dirty = true;
   }
   state.selectedId = null;
-  hideBars();
-  fillForm(null);
-  renderList();
-  persistDraft();
-  toast((mode === 'replace' ? 'Uvezeno: ' : 'Dodato na kraj: ') + formatCount(result.stations.length));
+  showPlaylist();
+  toast(IMPORT_DONE[mode] + formatCount(result.stations.length));
 }
 
 function savePlaylist() {
@@ -97,16 +102,6 @@ async function copyPlaylist() {
   }
 }
 
-function newPlaylist() {
-  if (busyGuard()) return;
-  resetPlaylist();
-  els.fFile.value = state.filename;
-  hideBars();
-  fillForm(null);
-  renderList();
-  persistDraft();
-}
-
 function initFileDrop() {
   const panel = els.rightPanel;
   let depth = 0;
@@ -143,13 +138,17 @@ export function initPlaylist() {
     if (file) importFile(file);
     els.importInput.value = '';
   });
-  els.btnImpReplace.addEventListener('click', () => pendingImport && applyImport(pendingImport.result, pendingImport.name, 'replace'));
-  els.btnImpAppend.addEventListener('click', () => pendingImport && applyImport(pendingImport.result, pendingImport.name, 'append'));
+  for (const [btn, mode] of [[els.btnImpTab, 'tab'], [els.btnImpReplace, 'replace'], [els.btnImpAppend, 'append']]) {
+    btn.addEventListener('click', () => pendingImport && applyImport(pendingImport.result, pendingImport.name, mode));
+  }
   els.btnImpCancel.addEventListener('click', () => { pendingImport = null; els.importBar.hidden = true; });
   initFileDrop();
 
-  confirmButton(els.btnNew, 'Obrisati sve?', newPlaylist);
-  els.fFile.addEventListener('input', () => { state.filename = els.fFile.value; });
+  els.fFile.addEventListener('input', () => {
+    state.filename = els.fFile.value;
+    renderTabs();
+    schedulePersist();
+  });
 
   els.btnSave.addEventListener('click', onSaveClick);
   els.btnWarnUpload.addEventListener('click', async () => {
@@ -161,6 +160,7 @@ export function initPlaylist() {
   els.btnCopy.addEventListener('click', copyPlaylist);
 
   addEventListener('beforeunload', e => {
-    if (state.dirty && state.stations.length) { e.preventDefault(); e.returnValue = ''; }
+    persistDraft();
+    if (state.dirty && state.stations.length && draftFailed()) { e.preventDefault(); e.returnValue = ''; }
   });
 }
