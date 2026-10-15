@@ -209,16 +209,17 @@ input[type=range]{flex:1;min-width:120px;accent-color:var(--accent);padding:0}
 .hgroup{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .view{display:flex;flex-direction:column;min-height:0}
 
-/* Lista: jedan red — izbor plejliste, ime fajla, pretraga stanica */
+/* Lista: pretraga, ime fajla + sačuvaj, padajući meni */
 .fnrow{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .fnrow input,.fnrow select{padding:7px 10px}
-.fnrow #plSelect{flex:0 1 180px;min-width:120px;max-width:240px;background:var(--field);border:1px solid var(--line);border-radius:4px}
-.fnrow #fFile{flex:1 1 120px;min-width:100px}
 .fnrow #listSearch{flex:1 1 140px;min-width:120px}
-.fnrow #btnPlAdd,.fnrow #btnPlClose{flex:none;width:32px;height:32px;padding:0;font-size:18px;line-height:1}
+.fnrow .file-field{flex:1 1 160px;min-width:140px;display:flex;align-items:center;gap:6px}
+.fnrow .file-field #fFile{flex:1;min-width:0}
+.fnrow #plSelect{flex:0 1 160px;min-width:110px;max-width:220px;background:var(--field);border:1px solid var(--line);border-radius:4px}
+.fnrow #btnSave,.fnrow #btnPlAdd,.fnrow #btnPlClose{flex:none;width:32px;height:32px;padding:0}
+.fnrow #btnPlAdd,.fnrow #btnPlClose{font-size:18px;line-height:1}
 .fnrow #btnPlClose .lbl{font-size:18px;line-height:1}
 .fnrow #btnPlClose.danger .lbl{font-size:14px;font-weight:700}
-.fnrow #hdrTag{flex:none}
 .grip:disabled{opacity:.35;cursor:not-allowed}
 .bar2{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--field);font-size:14px}
 .bar2.warn{background:var(--warn-soft)}
@@ -289,7 +290,10 @@ input[type=range]{flex:1;min-width:120px;accent-color:var(--accent);padding:0}
 }
 .raw{flex:none;border-top:1px solid var(--line);padding:0 16px}
 .raw summary{cursor:pointer;padding:10px 0;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.raw pre{margin:0 0 14px;max-height:220px;overflow:auto;background:var(--field);border:1px solid var(--line);border-radius:4px;padding:10px 12px;font:400 12px/1.5 var(--f-mono);user-select:text}
+.raw-panel{position:relative;margin:0 0 14px}
+.raw-copy{position:absolute;top:6px;right:6px;z-index:1;width:30px;height:30px;padding:0;background:var(--panel);border-color:var(--line);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.raw-copy:hover{border-color:var(--ink)}
+.raw pre{margin:0;max-height:220px;overflow:auto;background:var(--field);border:1px solid var(--line);border-radius:4px;padding:10px 40px 10px 12px;font:400 12px/1.5 var(--f-mono);user-select:text}
 
 /* Dijalog i obaveštenje */
 dialog{border:1px solid var(--line-strong);border-radius:6px;background:var(--panel);color:var(--ink);padding:0;width:min(480px,calc(100% - 32px));box-shadow:var(--shadow)}

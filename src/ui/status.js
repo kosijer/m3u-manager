@@ -1,5 +1,5 @@
 import { canUpload, savePlaylists, serialize, state } from '../state.js';
-import { formatCount, truncate } from '../lib/text.js';
+import { formatCount } from '../lib/text.js';
 import { els, toast } from './dom.js';
 import { renderTabs } from './tabs.js';
 
@@ -44,7 +44,6 @@ export function updateUI() {
   els.status.classList.toggle('dirty', state.dirty);
   els.btnSave.disabled = n === 0;
   els.btnCopy.disabled = n === 0;
-  els.hdrTag.textContent = truncate(state.header, 34);
   els.hostNote.hidden = canUpload();
   els.posOf.textContent = 'od ' + n;
   if (els.raw.open) els.rawPre.textContent = serialize();

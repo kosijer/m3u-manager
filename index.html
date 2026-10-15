@@ -30,10 +30,6 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
       <span class="lbl hide-sm">Upload slika</span>
     </button>
-    <button class="btn primary" id="btnSave" type="button">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>
-      <span class="lbl">Sačuvaj plejlistu</span>
-    </button>
   </div>
 </header>
 
@@ -146,7 +142,6 @@
       <span class="grow"></span>
       <span class="hgroup" id="plActions">
         <button class="btn small" type="button" id="btnImport">Uvezi .m3u</button>
-        <button class="btn small" type="button" id="btnCopy">Kopiraj</button>
       </span>
       <span class="hgroup" id="histActions" hidden>
         <button class="btn small" type="button" id="btnHistCsv" title="Preuzmi istoriju kao CSV (Excel, Numbers, Google Sheets)">Preuzmi CSV</button>
@@ -156,15 +151,16 @@
     <input id="importInput" type="file" multiple accept=".m3u,.m3u8,.txt,audio/x-mpegurl,application/vnd.apple.mpegurl" hidden>
     <div class="view" id="plView">
       <div class="fnrow" id="plBar">
-        <label for="plSelect">Lista</label>
+        <input id="listSearch" type="search" autocomplete="off" spellcheck="false" placeholder="Pretraži stanice" aria-label="Pretraži stanice">
+        <span class="file-field">
+          <input id="fFile" class="mono" type="text" autocomplete="off" spellcheck="false" value="radio.m3u" aria-label="Ime fajla" placeholder="radio.m3u">
+          <button class="btn small ico primary" type="button" id="btnSave" title="Sačuvaj plejlistu" aria-label="Sačuvaj plejlistu">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>
+          </button>
+        </span>
         <select id="plSelect" aria-label="Plejlista"></select>
         <button class="btn small ico" type="button" id="btnPlAdd" title="Nova plejlista" aria-label="Nova plejlista">+</button>
         <button class="btn small ico" type="button" id="btnPlClose" title="Zatvori plejlistu" aria-label="Zatvori plejlistu"><span class="lbl">×</span></button>
-        <label for="fFile">Fajl</label>
-        <input id="fFile" class="mono" type="text" autocomplete="off" spellcheck="false" value="radio.m3u">
-        <span class="tag" id="hdrTag">#EXTM3U</span>
-        <label for="listSearch">Traži</label>
-        <input id="listSearch" type="search" autocomplete="off" spellcheck="false" placeholder="Stanica ili link" aria-label="Pretraga stanica">
       </div>
       <div class="bar2" id="importBar" hidden>
         <span id="importText"></span>
@@ -187,7 +183,15 @@
           <button class="btn" type="button" id="btnEmptyImport">Uvezi postojeći .m3u</button>
         </div>
       </div>
-      <details class="raw" id="raw"><summary>M3U tekst</summary><pre id="rawPre"></pre></details>
+      <details class="raw" id="raw">
+        <summary>M3U tekst</summary>
+        <div class="raw-panel">
+          <button class="btn small ico ghost raw-copy" type="button" id="btnCopy" title="Kopiraj M3U tekst" aria-label="Kopiraj M3U tekst">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M5 15V5.5A1.5 1.5 0 0 1 6.5 4H15"/></svg>
+          </button>
+          <pre id="rawPre"></pre>
+        </div>
+      </details>
     </div>
 
     <div class="view" id="histView" hidden>

@@ -18,7 +18,7 @@ Alat za pravljenje i uređivanje `.m3u` plejlisti internet radio stanica. Stati�
 - **Poruke** (greške, potvrde) se pojavljuju kao snackbar u donjem desnom uglu; klik ga zatvara. HLS (`.m3u8`) radi i u Chrome-u i Firefox-u preko `hls.js`, koji se učitava tek kad zatreba. Na https sajtu (GitHub Pages) browser blokira `http://` streamove, a za HLS server mora da dozvoli CORS.
 - **Više plejlisti:** u redu iznad liste je padajući meni (Lista), polje za ime fajla i **Traži** (filtrira stanice po nazivu ili linku). **+** otvara novu listu, **×** zatvara tekuću; ako ima stanica koje nisu sačuvane u fajl, traži se drugi klik. Tačka (•) pored imena u meniju znači da lista nije sačuvana u fajl. Stanica koja svira nastavlja da svira i kad se pređe na drugu listu.
 - **Uvoz postojećeg `.m3u`** (dugme ili prevlačenje fajla na desni panel). Ako tekuća plejlista nije prazna, bira se: nova lista, zameni listu ili dodaj na kraj. Više fajlova odjednom otvara svaki u svojoj listi. Dodatni atributi (`tvg-id`, `group-title`...) i `#EXTVLCOPT` linije se čuvaju pri izvozu.
-- **Čuvanje:** sve plejliste se automatski čuvaju u pregledaču (`localStorage`) i vraćaju pri sledećem otvaranju. Dugme "Sačuvaj plejlistu" preuzima tekuću kao `.m3u` fajl; dok to nije urađeno posle poslednje izmene, u meniju stoji •, a gore piše "Nije sačuvano u fajl". Postoje i kopiranje teksta i pregled M3U teksta.
+- **Čuvanje:** sve plejliste se automatski čuvaju u pregledaču (`localStorage`) i vraćaju pri sledećem otvaranju. Ikona preuzimanja pored imena fajla čuva tekuću listu kao `.m3u`; dok to nije urađeno posle poslednje izmene, u meniju stoji •, a gore piše "Nije sačuvano u fajl". M3U tekst se pregleda i kopira iz donjeg bloka "M3U tekst".
 
 Izlazni format:
 

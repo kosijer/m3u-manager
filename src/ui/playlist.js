@@ -172,7 +172,11 @@ export function initPlaylist() {
   });
   els.btnWarnSkip.addEventListener('click', savePlaylist);
   els.btnWarnCancel.addEventListener('click', () => { els.saveWarn.hidden = true; });
-  els.btnCopy.addEventListener('click', copyPlaylist);
+  els.btnCopy.addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    copyPlaylist();
+  });
 
   addEventListener('beforeunload', e => {
     persistDraft();
