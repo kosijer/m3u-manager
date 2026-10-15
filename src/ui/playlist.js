@@ -4,6 +4,7 @@ import { cleanFilename, formatCount } from '../lib/text.js';
 import { pendingCount, resetPlaylist, serialize, state } from '../state.js';
 import { confirmButton, els, toast } from './dom.js';
 import { fillForm } from './form.js';
+import { showView } from './history.js';
 import { renderList } from './list.js';
 import { persistDraft, updateUI } from './status.js';
 import { uploadAllPending } from './uploads.js';
@@ -29,6 +30,7 @@ async function importFile(file) {
   try { text = await file.text(); } catch { toast('Fajl nije moguće pročitati.', 'err'); return; }
   const result = parseM3U(text);
   if (!result.stations.length) { toast('U fajlu nema nijedne stanice.', 'err'); return; }
+  showView('playlist');
   if (state.stations.length) {
     pendingImport = { result, name: file.name };
     els.importText.textContent = `${file.name}: ${formatCount(result.stations.length)}. Šta da uradim sa njima?`;
@@ -70,6 +72,7 @@ function savePlaylist() {
 function onSaveClick() {
   const p = pendingCount();
   if (!p) { savePlaylist(); return; }
+  showView('playlist');
   els.saveWarnText.textContent = p === 1
     ? '1 logo još nije uploadovan. Bez uploada neće biti u fajlu.'
     : `${p} logotipa još nije uploadovano. Bez uploada neće biti u fajlu.`;

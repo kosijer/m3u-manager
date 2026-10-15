@@ -126,41 +126,68 @@
     </div>
   </section>
 
-  <section class="panel right" id="rightPanel" aria-label="Plejlista">
+  <section class="panel right" id="rightPanel" aria-label="Plejlista i istorija pesama">
     <div class="phead">
-      <h2>Plejlista</h2><span class="tag" id="countTag">0 stanica</span>
+      <div class="seg views" role="group" aria-label="Prikaz">
+        <button type="button" id="viewPlaylist" aria-pressed="true" aria-controls="plView">Plejlista</button>
+        <button type="button" id="viewHistory" aria-pressed="false" aria-controls="histView">Istorija</button>
+      </div>
+      <span class="tag" id="countTag">0 stanica</span>
+      <span class="tag" id="histCount" hidden></span>
       <span class="grow"></span>
-      <button class="btn small" type="button" id="btnImport">Uvezi .m3u</button>
-      <button class="btn small" type="button" id="btnNew"><span class="lbl">Novo</span></button>
-      <button class="btn small" type="button" id="btnCopy">Kopiraj</button>
+      <span class="hgroup" id="plActions">
+        <button class="btn small" type="button" id="btnImport">Uvezi .m3u</button>
+        <button class="btn small" type="button" id="btnNew"><span class="lbl">Novo</span></button>
+        <button class="btn small" type="button" id="btnCopy">Kopiraj</button>
+      </span>
+      <span class="hgroup" id="histActions" hidden>
+        <button class="btn small" type="button" id="btnHistCsv" title="Preuzmi istoriju kao CSV (Excel, Numbers, Google Sheets)">Preuzmi CSV</button>
+        <button class="btn small" type="button" id="btnHistClear"><span class="lbl">Obriši</span></button>
+      </span>
     </div>
     <input id="importInput" type="file" accept=".m3u,.m3u8,.txt,audio/x-mpegurl,application/vnd.apple.mpegurl" hidden>
-    <div class="fnrow">
-      <label for="fFile">Fajl</label>
-      <input id="fFile" class="mono" type="text" autocomplete="off" spellcheck="false" value="radio.m3u">
-      <span class="tag" id="hdrTag">#EXTM3U</span>
+    <div class="view" id="plView">
+      <div class="fnrow">
+        <label for="fFile">Fajl</label>
+        <input id="fFile" class="mono" type="text" autocomplete="off" spellcheck="false" value="radio.m3u">
+        <span class="tag" id="hdrTag">#EXTM3U</span>
+      </div>
+      <div class="bar2" id="importBar" hidden>
+        <span id="importText"></span>
+        <button class="btn small" type="button" id="btnImpReplace">Zameni listu</button>
+        <button class="btn small" type="button" id="btnImpAppend">Dodaj na kraj</button>
+        <button class="btn small ghost" type="button" id="btnImpCancel">Odustani</button>
+      </div>
+      <div class="bar2 warn" id="saveWarn" hidden>
+        <span id="saveWarnText"></span>
+        <button class="btn small" type="button" id="btnWarnUpload">Uploaduj i sačuvaj</button>
+        <button class="btn small" type="button" id="btnWarnSkip">Sačuvaj bez njih</button>
+        <button class="btn small ghost" type="button" id="btnWarnCancel">Odustani</button>
+      </div>
+      <div class="listwrap" id="listwrap">
+        <ol class="list" id="list" hidden></ol>
+        <div class="empty" id="empty">
+          <h3>Plejlista je prazna</h3>
+          <p>Dodaj prvu stanicu sa leve strane, ili uvezi postojeći .m3u fajl da nastaviš odatle. Fajl možeš i da prevučeš na ovaj panel.</p>
+          <button class="btn" type="button" id="btnEmptyImport">Uvezi postojeći .m3u</button>
+        </div>
+      </div>
+      <details class="raw" id="raw"><summary>M3U tekst</summary><pre id="rawPre"></pre></details>
     </div>
-    <div class="bar2" id="importBar" hidden>
-      <span id="importText"></span>
-      <button class="btn small" type="button" id="btnImpReplace">Zameni listu</button>
-      <button class="btn small" type="button" id="btnImpAppend">Dodaj na kraj</button>
-      <button class="btn small ghost" type="button" id="btnImpCancel">Odustani</button>
-    </div>
-    <div class="bar2 warn" id="saveWarn" hidden>
-      <span id="saveWarnText"></span>
-      <button class="btn small" type="button" id="btnWarnUpload">Uploaduj i sačuvaj</button>
-      <button class="btn small" type="button" id="btnWarnSkip">Sačuvaj bez njih</button>
-      <button class="btn small ghost" type="button" id="btnWarnCancel">Odustani</button>
-    </div>
-    <div class="listwrap" id="listwrap">
-      <ol class="list" id="list" hidden></ol>
-      <div class="empty" id="empty">
-        <h3>Plejlista je prazna</h3>
-        <p>Dodaj prvu stanicu sa leve strane, ili uvezi postojeći .m3u fajl da nastaviš odatle. Fajl možeš i da prevučeš na ovaj panel.</p>
-        <button class="btn" type="button" id="btnEmptyImport">Uvezi postojeći .m3u</button>
+
+    <div class="view" id="histView" hidden>
+      <div class="fnrow">
+        <label for="histSearch">Traži</label>
+        <input id="histSearch" type="search" autocomplete="off" spellcheck="false" placeholder="Pesma ili stanica">
+      </div>
+      <div class="listwrap" id="histWrap">
+        <div id="histList"></div>
+        <div class="empty" id="histEmpty">
+          <h3 id="histEmptyTitle">Istorija je prazna</h3>
+          <p id="histEmptyText"></p>
+        </div>
       </div>
     </div>
-    <details class="raw" id="raw"><summary>M3U tekst</summary><pre id="rawPre"></pre></details>
   </section>
 </main>
 

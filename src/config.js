@@ -16,7 +16,10 @@ export const NOWPLAYING_URL = (env.VITE_NOWPLAYING_URL || '').trim().replace(/\/
 export const STORAGE_KEYS = {
   draft: 'm3ustudio.draft.v1',
   settings: 'm3ustudio.settings.v1',
+  history: 'm3ustudio.history.v1',
 };
+
+export const HISTORY_MAX = 500;
 
 export const DEFAULT_FILENAME = 'radio.m3u';
 export const LOGO_SIZE = 600;

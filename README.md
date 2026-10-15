@@ -12,6 +12,7 @@ Alat za pravljenje i uređivanje `.m3u` plejlisti internet radio stanica. Stati�
 - **Lista stanica** sa prevlačenjem za promenu redosleda. Ručka ima i tastaturu (strelice gore i dole kad je fokusirana). Klik na stanicu otvara izmenu, sa poljem "Mesto u listi" i brisanjem.
 - **Preslušavanje:** dugme ▶ na svakoj stanici pušta stream (jedna stanica u isto vreme). Leva kolona je harmonika: otvorena je ili forma (dok se dodaje ili menja stanica) ili veliki pregled trenutne stanice u punoj veličini 600x600, poravnat uz dno ekrana; zatvoren pregled ostaje kao traka sa nazivom stanice i dugmetom ▶. Kad se pređe mišem preko loga, uz donju ivicu slike se pojave kontrole prethodna / pusti-zaustavi / sledeća i dugme za ceo ekran. Na celom ekranu se vidi samo logo, a kontrole se pojave kad se pomeri miš. Tastatura: **razmak** pušta i zaustavlja, **← / →** prelaze na prethodnu i sledeću stanicu, **F** uključuje i isključuje ceo ekran, **Esc** izlazi (sve dok je kursor van polja za unos). Rade i multimedijalni tasteri na tastaturi (play/pause, next, previous).
 - **Naziv pesme:** dok stanica svira, u zaglavlju pregleda (i na celom ekranu) piše pesma koja trenutno ide, ako je stanica šalje. Potreban je mali Cloudflare Worker, vidi [Naziv pesme](#naziv-pesme-cloudflare-worker).
+- **Istorija pesama:** desni panel ima prekidač **Plejlista / Istorija**. Svaka nova pesma se upisuje sa nazivom stanice i vremenom (poslednjih 500, čuva se u pregledaču). Pesme su grupisane po danima, mogu da se pretražuju, a uz svaku su linkovi za pretragu na YouTube-u i Spotify-u. Cela istorija se preuzima kao CSV ili briše.
 - **Video:** ako stream ima i sliku (npr. HLS TV kanal), u pregledu se umesto loga prikazuje video, i na celom ekranu. Ništa ne treba označavati u plejlisti, prepoznaje se samo. Pazi na protok: video stream troši mnogo više podataka nego radio (primer `https://origin.streamnerd.nl/operator/operator/chunks.m3u8` oko 2 GB na sat), i to i kad je pregled zatvoren, jer su zvuk i slika u istom streamu.
 - **Poruke** (greške, potvrde) se pojavljuju kao snackbar u donjem desnom uglu; klik ga zatvara. HLS (`.m3u8`) radi i u Chrome-u i Firefox-u preko `hls.js`, koji se učitava tek kad zatreba. Na https sajtu (GitHub Pages) browser blokira `http://` streamove, a za HLS server mora da dozvoli CORS.
 - **Uvoz postojećeg `.m3u`** (dugme ili prevlačenje fajla na desni panel). Dodatni atributi (`tvg-id`, `group-title`...) i `#EXTVLCOPT` linije se čuvaju pri izvozu.
@@ -214,6 +215,7 @@ src/
     m3u.js                 parseM3U, serializeM3U, parseAttrs
     station.js             model stanice, createStation, normalizeStation
     text.js                množina, ime fajla, validacija linka...
+    history.js             istorija pesama: dodavanje bez duplikata, pretraga, CSV
     blob.js                data URL u Blob, preuzimanje fajla
   services/
     upload.js              upload na ImgBB / Imgur (novi servis = nova funkcija u UPLOADERS)
@@ -227,6 +229,7 @@ src/
     cropper.js             kropper za logo (600x600 PNG)
     list.js                lista stanica i promena redosleda
     now-playing.js         veliki pregled stanice, kontrole i prečice na tastaturi
+    history.js             prikaz istorije pesama i prekidač Plejlista / Istorija
     icons.js               SVG ikonice (play, pauza, prethodna, sledeća)
     playlist.js            uvoz, čuvanje, kopiranje, nova lista
     uploads.js             ponovni upload logotipa koji čekaju
@@ -245,4 +248,4 @@ Model stanice:
 
 `logo` je uploadovan URL, `pending` je data URL slike koja čeka upload, `attrs` su ostali atributi iz `#EXTINF`, `extras` su dodatne `#` linije između `#EXTINF` i linka.
 
-Ključevi u `localStorage`: `m3ustudio.draft.v1` (nacrt) i `m3ustudio.settings.v1` (servis i ključ). Isti su kao u staroj verziji, pa se postojeći nacrt i podešavanja zadržavaju.
+Ključevi u `localStorage`: `m3ustudio.draft.v1` (nacrt), `m3ustudio.settings.v1` (servis i ključ) i `m3ustudio.history.v1` (istorija pesama). Isti su kao u staroj verziji, pa se postojeći nacrt i podešavanja zadržavaju.

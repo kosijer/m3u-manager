@@ -10,6 +10,16 @@ export function pluralStations(n) {
 
 export const formatCount = n => `${n} ${pluralStations(n)}`;
 
+/** 1 pesma, 2-4 pesme, 5+ pesama (11-14 pesama, 21 pesma). */
+export function formatSongs(n) {
+  const a = n % 10, b = n % 100;
+  const word = a === 1 && b !== 11 ? 'pesma' : a >= 2 && a <= 4 && (b < 12 || b > 14) ? 'pesme' : 'pesama';
+  return `${n} ${word}`;
+}
+
+/** Mala slova bez dijakritika, za pretragu (č, ć, š, ž; đ nema rastavljen oblik). */
+export const foldText = s => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'dj');
+
 export function initials(name) {
   const w = name.trim().split(/\s+/).filter(Boolean);
   return (((w[0] || '?')[0]) + ((w[1] || '')[0] || '')).toUpperCase();

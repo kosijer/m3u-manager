@@ -18,3 +18,6 @@ export const storeSettings = settings => write(STORAGE_KEYS.settings, JSON.strin
 
 export const loadDraft = () => readJson(STORAGE_KEYS.draft);
 export const storeDraft = draft => write(STORAGE_KEYS.draft, JSON.stringify(draft));
+
+export const loadHistory = () => readJson(STORAGE_KEYS.history);
+export const storeHistory = entries => write(STORAGE_KEYS.history, JSON.stringify(entries));

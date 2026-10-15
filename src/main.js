@@ -5,6 +5,7 @@ import { initAccordion } from './ui/accordion.js';
 import { initCropper } from './ui/cropper.js';
 import { els, toast } from './ui/dom.js';
 import { fillForm, initForm } from './ui/form.js';
+import { initHistory } from './ui/history.js';
 import { initList, renderList } from './ui/list.js';
 import { initNowPlaying } from './ui/now-playing.js';
 import { initPlaylist } from './ui/playlist.js';
@@ -22,6 +23,7 @@ initForm();
 initPlaylist();
 initSettingsDialog();
 initNowPlaying();
+initHistory();
 
 els.fFile.value = state.filename;
 fillForm(null);
