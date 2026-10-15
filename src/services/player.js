@@ -47,7 +47,6 @@ function setStatus(next) {
 }
 
 const isHlsUrl = url => /\.m3u8(?:[?#]|$)/i.test(url);
-const nativeHls = () => media.canPlayType('application/vnd.apple.mpegurl') !== '';
 
 function describeError(url, err) {
   if (location.protocol === 'https:' && /^http:/i.test(url)) {
@@ -94,15 +93,22 @@ export async function play(id, url) {
   }, LOAD_TIMEOUT_MS);
 
   try {
-    if (isHlsUrl(url) && !nativeHls()) {
+    if (isHlsUrl(url)) {
       const { default: Hls } = await import('hls.js/light');
       if (current !== token) return;
-      if (!Hls.isSupported()) throw new Error('HLS nije podržan');
-      // Kad je slika mala ili sakrivena, bira se najslabiji kvalitet (manje podataka).
-      hls = new Hls({ capLevelToPlayerSize: true });
-      hls.on(Hls.Events.ERROR, (_, data) => { if (data.fatal) fail(token, { hls: data }); });
-      hls.loadSource(url);
-      hls.attachMedia(media);
+      // Chrome ponekad javi "maybe" za HLS, a ne pušta audio-only streamove (npr. NTS).
+      // Zato hls.js ima prednost; nativno ostaje samo za Safari (gde hls.js nije podržan).
+      if (Hls.isSupported()) {
+        // Kad je slika mala ili sakrivena, bira se najslabiji kvalitet (manje podataka).
+        hls = new Hls({ capLevelToPlayerSize: true });
+        hls.on(Hls.Events.ERROR, (_, data) => { if (data.fatal) fail(token, { hls: data }); });
+        hls.loadSource(url);
+        hls.attachMedia(media);
+      } else if (media.canPlayType('application/vnd.apple.mpegurl')) {
+        media.src = url;
+      } else {
+        throw new Error('HLS nije podržan');
+      }
     } else {
       media.src = url;
     }
