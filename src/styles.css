@@ -209,24 +209,17 @@ input[type=range]{flex:1;min-width:120px;accent-color:var(--accent);padding:0}
 .hgroup{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .view{display:flex;flex-direction:column;min-height:0}
 
-/* Tabovi plejlisti; tačka znači da plejlista nije sačuvana u fajl */
-.ptabs{flex:none;display:flex;align-items:flex-end;gap:2px;padding:8px 16px 0;background:var(--field);border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:thin}
-.ptab{flex:none;display:flex;align-items:center;max-width:220px;margin-bottom:-1px;border:1px solid transparent;border-bottom:0;border-radius:5px 5px 0 0;color:var(--muted)}
-.ptab:hover{color:var(--ink)}
-.ptab.on{background:var(--panel);border-color:var(--line);color:var(--ink);box-shadow:inset 0 2px 0 var(--accent)}
-.ptab-main{display:flex;align-items:center;gap:7px;min-width:0;padding:8px 4px 8px 12px;border:0;background:none;cursor:pointer;font-weight:600;font-size:13px}
-.ptab-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ptab-dot{flex:none;width:7px;height:7px;border-radius:50%;background:var(--accent)}
-.ptab-x{flex:none;min-width:24px;height:24px;margin-right:6px;padding:0 4px;border:0;border-radius:3px;background:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1}
-.ptab-x:hover{background:var(--line);color:var(--ink)}
-.ptab-x.armed{font-size:11px;font-weight:700;color:var(--danger)}
-.ptab-add{flex:none;width:28px;height:28px;margin:0 0 4px 6px;border:1px dashed var(--line-strong);border-radius:4px;background:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1}
-.ptab-add:hover{color:var(--ink);border-color:var(--ink)}
-.ptab-main:focus-visible,.ptab-x:focus-visible,.ptab-add:focus-visible{outline:2px solid var(--teal);outline-offset:-2px}
-
-/* Lista */
-.fnrow{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-.fnrow input{flex:1;min-width:140px;padding:7px 10px}
+/* Lista: jedan red — izbor plejliste, ime fajla, pretraga stanica */
+.fnrow{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.fnrow input,.fnrow select{padding:7px 10px}
+.fnrow #plSelect{flex:0 1 180px;min-width:120px;max-width:240px;background:var(--field);border:1px solid var(--line);border-radius:4px}
+.fnrow #fFile{flex:1 1 120px;min-width:100px}
+.fnrow #listSearch{flex:1 1 140px;min-width:120px}
+.fnrow #btnPlAdd,.fnrow #btnPlClose{flex:none;width:32px;height:32px;padding:0;font-size:18px;line-height:1}
+.fnrow #btnPlClose .lbl{font-size:18px;line-height:1}
+.fnrow #btnPlClose.danger .lbl{font-size:14px;font-weight:700}
+.fnrow #hdrTag{flex:none}
+.grip:disabled{opacity:.35;cursor:not-allowed}
 .bar2{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--field);font-size:14px}
 .bar2.warn{background:var(--warn-soft)}
 .bar2 span{flex:1;min-width:180px}

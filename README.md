@@ -16,9 +16,9 @@ Alat za pravljenje i uređivanje `.m3u` plejlisti internet radio stanica. Stati�
 - **Video:** ako stream ima i sliku (npr. HLS TV kanal), u pregledu se umesto loga prikazuje video, i na celom ekranu. Ništa ne treba označavati u plejlisti, prepoznaje se samo. Pazi na protok: video stream troši mnogo više podataka nego radio (primer `https://origin.streamnerd.nl/operator/operator/chunks.m3u8` oko 2 GB na sat), i to i kad je pregled zatvoren, jer su zvuk i slika u istom streamu.
 - **Instalacija kao aplikacija (PWA):** svoj prozor, ikonica, rad bez interneta, otvaranje `.m3u` fajlova dvoklikom. Vidi [Instalacija kao aplikacija](#instalacija-kao-aplikacija-pwa).
 - **Poruke** (greške, potvrde) se pojavljuju kao snackbar u donjem desnom uglu; klik ga zatvara. HLS (`.m3u8`) radi i u Chrome-u i Firefox-u preko `hls.js`, koji se učitava tek kad zatreba. Na https sajtu (GitHub Pages) browser blokira `http://` streamove, a za HLS server mora da dozvoli CORS.
-- **Više plejlisti u tabovima:** iznad liste su tabovi, svaki tab je posebna plejlista. **+** otvara novu, **×** (ili srednji klik) zatvara; ako plejlista ima stanice koje nisu sačuvane u fajl, traži se drugi klik. Ime taba je ime fajla (polje "Fajl"). Stanica koja svira nastavlja da svira i kad se pređe na drugi tab.
-- **Uvoz postojećeg `.m3u`** (dugme ili prevlačenje fajla na desni panel). Ako tekuća plejlista nije prazna, bira se: otvori u novom tabu, zameni listu ili dodaj na kraj. Više fajlova odjednom otvara svaki u svom tabu. Dodatni atributi (`tvg-id`, `group-title`...) i `#EXTVLCOPT` linije se čuvaju pri izvozu.
-- **Čuvanje:** sve plejliste se automatski čuvaju u pregledaču (`localStorage`) i vraćaju pri sledećem otvaranju. Dugme "Sačuvaj plejlistu" preuzima tekuću kao `.m3u` fajl; dok to nije urađeno posle poslednje izmene, tab ima tačku, a gore piše "Nije sačuvano u fajl". Postoje i kopiranje teksta i pregled M3U teksta.
+- **Više plejlisti:** u redu iznad liste je padajući meni (Lista), polje za ime fajla i **Traži** (filtrira stanice po nazivu ili linku). **+** otvara novu listu, **×** zatvara tekuću; ako ima stanica koje nisu sačuvane u fajl, traži se drugi klik. Tačka (•) pored imena u meniju znači da lista nije sačuvana u fajl. Stanica koja svira nastavlja da svira i kad se pređe na drugu listu.
+- **Uvoz postojećeg `.m3u`** (dugme ili prevlačenje fajla na desni panel). Ako tekuća plejlista nije prazna, bira se: nova lista, zameni listu ili dodaj na kraj. Više fajlova odjednom otvara svaki u svojoj listi. Dodatni atributi (`tvg-id`, `group-title`...) i `#EXTVLCOPT` linije se čuvaju pri izvozu.
+- **Čuvanje:** sve plejliste se automatski čuvaju u pregledaču (`localStorage`) i vraćaju pri sledećem otvaranju. Dugme "Sačuvaj plejlistu" preuzima tekuću kao `.m3u` fajl; dok to nije urađeno posle poslednje izmene, u meniju stoji •, a gore piše "Nije sačuvano u fajl". Postoje i kopiranje teksta i pregled M3U teksta.
 
 Izlazni format:
 
@@ -226,7 +226,7 @@ src/
   sw.js                    service worker (keš za rad bez interneta)
   main.js                  pokretanje: vraća podešavanja i plejliste, vezuje događaje
   config.js                .env vrednosti i konstante
-  state.js                 stanje aplikacije, tabovi (plejliste), podešavanje upload-a
+  state.js                 stanje aplikacije, više plejlisti, podešavanje upload-a
   storage.js               localStorage (bez grešaka u privatnom režimu)
   styles.css
   lib/                     čiste funkcije, bez DOM-a (imaju testove)
@@ -234,7 +234,7 @@ src/
     station.js             model stanice, createStation, normalizeStation
     text.js                množina, ime fajla, validacija linka...
     history.js             istorija pesama: dodavanje bez duplikata, pretraga, CSV
-    playlists.js           model plejliste (taba), jedinstveno ime fajla
+    playlists.js           model plejliste, jedinstveno ime fajla
     blob.js                data URL u Blob, preuzimanje fajla
   services/
     upload.js              upload na ImgBB / Imgur (novi servis = nova funkcija u UPLOADERS)
@@ -243,7 +243,7 @@ src/
   ui/
     dom.js                 els (svi elementi sa id-jem), toast, dugme sa potvrdom
     status.js              gornja traka, brojač, odloženo čuvanje plejlisti
-    tabs.js                tabovi plejlisti: novi, prelazak, zatvaranje
+    tabs.js                padajući meni plejlisti: izbor, nova, zatvaranje
     pwa.js                 instalacija, otvaranje .m3u iz sistema, link iz menija "Podeli"
     accordion.js           leva kolona: otvorena je forma ili pregled stanice
     form.js                forma za dodavanje i izmenu stanice
@@ -252,7 +252,7 @@ src/
     now-playing.js         veliki pregled stanice, kontrole i prečice na tastaturi
     history.js             prikaz istorije pesama i prekidač Plejlista / Istorija
     icons.js               SVG ikonice (play, pauza, prethodna, sledeća)
-    playlist.js            uvoz (u novi tab, zamena, dodavanje), čuvanje u fajl, kopiranje
+    playlist.js            uvoz (nova lista, zamena, dodavanje), čuvanje u fajl, kopiranje
     uploads.js             ponovni upload logotipa koji čekaju
     settings-dialog.js     dijalog "Upload slika"
 worker/                    Cloudflare Worker za naziv pesme
@@ -269,4 +269,4 @@ Model stanice:
 
 `logo` je uploadovan URL, `pending` je data URL slike koja čeka upload, `attrs` su ostali atributi iz `#EXTINF`, `extras` su dodatne `#` linije između `#EXTINF` i linka.
 
-Ključevi u `localStorage`: `m3ustudio.playlists.v1` (svi tabovi), `m3ustudio.settings.v1` (servis i ključ) i `m3ustudio.history.v1` (istorija pesama). Nacrt iz verzije sa jednom plejlistom (`m3ustudio.draft.v1`) se pri prvom otvaranju prebacuje u prvi tab.
+Ključevi u `localStorage`: `m3ustudio.playlists.v1` (sve plejliste), `m3ustudio.settings.v1` (servis i ključ) i `m3ustudio.history.v1` (istorija pesama). Nacrt iz verzije sa jednom plejlistom (`m3ustudio.draft.v1`) se pri prvom otvaranju prebacuje u prvu listu.

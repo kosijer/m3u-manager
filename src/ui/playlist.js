@@ -5,12 +5,12 @@ import { addPlaylist, pendingCount, serialize, state } from '../state.js';
 import { els, toast } from './dom.js';
 import { fillForm } from './form.js';
 import { showView } from './history.js';
-import { renderList } from './list.js';
+import { clearListSearch, renderList } from './list.js';
 import { busyGuard, draftFailed, persistDraft, schedulePersist, updateUI } from './status.js';
 import { renderTabs } from './tabs.js';
 import { uploadAllPending } from './uploads.js';
 
-/** Uvezen fajl koji čeka odluku "Novi tab" / "Zameni listu" / "Dodaj na kraj". */
+/** Uvezen fajl koji čeka odluku "Nova lista" / "Zameni listu" / "Dodaj na kraj". */
 let pendingImport = null;
 
 function hideBars() {
@@ -19,9 +19,10 @@ function hideBars() {
   pendingImport = null;
 }
 
-/** Prikazuje aktivnu plejlistu iz početka (posle promene taba). */
+/** Prikazuje aktivnu plejlistu iz početka (posle promene liste). */
 export function showPlaylist() {
   els.fFile.value = state.filename;
+  clearListSearch();
   hideBars();
   showView('playlist');
   fillForm(null);
@@ -38,7 +39,7 @@ async function readPlaylist(file) {
   return result;
 }
 
-/** Jedan fajl pita šta da radi sa njim; više fajlova se otvara svaki u svom tabu. */
+/** Jedan fajl pita šta da radi sa njim; više fajlova se otvara svaki u svojoj listi. */
 export async function importFiles(files) {
   const list = [...files];
   if (list.length === 1) { importFile(list[0]); return; }
@@ -61,7 +62,7 @@ async function importFile(file) {
   }
 }
 
-const IMPORT_DONE = { tab: 'Otvoreno u novom tabu: ', replace: 'Uvezeno: ', append: 'Dodato na kraj: ' };
+const IMPORT_DONE = { tab: 'Otvoreno u novoj listi: ', replace: 'Uvezeno: ', append: 'Dodato na kraj: ' };
 
 function applyImport(result, name, mode) {
   if (busyGuard()) return;

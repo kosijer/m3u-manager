@@ -1,5 +1,5 @@
 import { findAnyStation, findStation, moveStation, state } from '../state.js';
-import { initials } from '../lib/text.js';
+import { foldText, initials } from '../lib/text.js';
 import { onPlayerChange, playerState, stop as stopPlayer, toggle as togglePlayer } from '../services/player.js';
 import { els, loadThumb, toast } from './dom.js';
 import { selectStation } from './form.js';
@@ -10,6 +10,18 @@ import { isUploading, retryUpload } from './uploads.js';
 
 const GRIP_SVG = '<svg width="12" height="18" viewBox="0 0 12 18" fill="currentColor" aria-hidden="true"><circle cx="3" cy="3" r="1.5"/><circle cx="9" cy="3" r="1.5"/><circle cx="3" cy="9" r="1.5"/><circle cx="9" cy="9" r="1.5"/><circle cx="3" cy="15" r="1.5"/><circle cx="9" cy="15" r="1.5"/></svg>';
 const PLAY_PAUSE_SVG = playIcon(14) + pauseIcon(13);
+
+/** Tekući upit pretrage; ne menja redosled u plejlisti, samo šta se vidi. */
+let query = '';
+
+export function clearListSearch() {
+  query = '';
+  if (els.listSearch) els.listSearch.value = '';
+}
+
+function matches(s, q) {
+  return !q || foldText(s.name).includes(q) || foldText(s.url).includes(q);
+}
 
 function el(tag, className, text) {
   const e = document.createElement(tag);
@@ -27,7 +39,7 @@ function thumbEl(s) {
   return th;
 }
 
-function rowEl(s, index, pad, flashId) {
+function rowEl(s, index, pad, flashId, filterOn) {
   const selected = s.id === state.selectedId;
   const li = el('li', 'row' + (selected ? ' sel' : '') + (s.id === flashId ? ' flash' : ''));
   li.dataset.id = s.id;
@@ -35,8 +47,14 @@ function rowEl(s, index, pad, flashId) {
   const grip = el('button', 'grip');
   grip.type = 'button';
   grip.innerHTML = GRIP_SVG;
-  grip.title = 'Prevuci da promeniš mesto';
-  grip.setAttribute('aria-label', 'Premesti stanicu ' + s.name + ' (strelice gore i dole)');
+  // Dok traje pretraga, redosled se ne menja prevlačenjem (lista nije cela).
+  if (filterOn) {
+    grip.disabled = true;
+    grip.title = 'Isključi pretragu da promeniš mesto';
+  } else {
+    grip.title = 'Prevuci da promeniš mesto';
+    grip.setAttribute('aria-label', 'Premesti stanicu ' + s.name + ' (strelice gore i dole)');
+  }
 
   const main = el('button', 'rowmain');
   main.type = 'button';
@@ -93,11 +111,28 @@ function syncPlayer() {
 export function renderList(flashId) {
   syncPlayer();
   const ul = els.list;
+  const q = foldText(query.trim());
+  const filterOn = !!q;
+  const shown = filterOn
+    ? state.stations.map((s, i) => [s, i]).filter(([s]) => matches(s, q))
+    : state.stations.map((s, i) => [s, i]);
   const pad = Math.max(2, String(state.stations.length).length);
-  ul.replaceChildren(...state.stations.map((s, i) => rowEl(s, i, pad, flashId)));
-  const none = state.stations.length === 0;
-  ul.hidden = none;
-  els.empty.hidden = !none;
+  ul.replaceChildren(...shown.map(([s, i]) => rowEl(s, i, pad, flashId, filterOn)));
+
+  const empty = state.stations.length === 0;
+  const noMatch = !empty && filterOn && !shown.length;
+  ul.hidden = empty || noMatch;
+  els.empty.hidden = !empty && !noMatch;
+  if (empty) {
+    els.empty.querySelector('h3').textContent = 'Plejlista je prazna';
+    els.empty.querySelector('p').textContent = 'Dodaj prvu stanicu sa leve strane, ili uvezi postojeći .m3u fajl da nastaviš odatle. Fajl možeš i da prevučeš na ovaj panel.';
+    els.btnEmptyImport.hidden = false;
+  } else if (noMatch) {
+    els.empty.querySelector('h3').textContent = 'Nema rezultata';
+    els.empty.querySelector('p').textContent = `Nijedna stanica ne sadrži „${query.trim()}”.`;
+    els.btnEmptyImport.hidden = true;
+  }
+
   if (flashId) ul.querySelector('.flash')?.scrollIntoView({ block: 'nearest' });
   updateUI();
   renderNowPlaying();
@@ -186,6 +221,11 @@ function startDrag(e, li) {
 }
 
 export function initList() {
+  els.listSearch.addEventListener('input', () => {
+    query = els.listSearch.value;
+    renderList();
+  });
+
   els.list.addEventListener('click', e => {
     const retry = e.target.closest('.retry');
     if (retry) { retryUpload(retry.closest('.row').dataset.id); return; }
@@ -201,7 +241,7 @@ export function initList() {
 
   els.list.addEventListener('keydown', e => {
     const grip = e.target.closest('.grip');
-    if (!grip || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+    if (!grip || grip.disabled || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
     e.preventDefault();
     const id = grip.closest('.row').dataset.id;
     const i = state.stations.findIndex(s => s.id === id);
@@ -215,7 +255,7 @@ export function initList() {
 
   els.list.addEventListener('pointerdown', e => {
     const grip = e.target.closest('.grip');
-    if (grip) startDrag(e, grip.closest('.row'));
+    if (grip && !grip.disabled) startDrag(e, grip.closest('.row'));
   });
 
   onPlayerChange(e => {

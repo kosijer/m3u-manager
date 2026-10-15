@@ -155,15 +155,20 @@
     </div>
     <input id="importInput" type="file" multiple accept=".m3u,.m3u8,.txt,audio/x-mpegurl,application/vnd.apple.mpegurl" hidden>
     <div class="view" id="plView">
-      <div class="ptabs" id="plTabs" role="group" aria-label="Plejliste"></div>
-      <div class="fnrow">
+      <div class="fnrow" id="plBar">
+        <label for="plSelect">Lista</label>
+        <select id="plSelect" aria-label="Plejlista"></select>
+        <button class="btn small ico" type="button" id="btnPlAdd" title="Nova plejlista" aria-label="Nova plejlista">+</button>
+        <button class="btn small ico" type="button" id="btnPlClose" title="Zatvori plejlistu" aria-label="Zatvori plejlistu"><span class="lbl">×</span></button>
         <label for="fFile">Fajl</label>
         <input id="fFile" class="mono" type="text" autocomplete="off" spellcheck="false" value="radio.m3u">
         <span class="tag" id="hdrTag">#EXTM3U</span>
+        <label for="listSearch">Traži</label>
+        <input id="listSearch" type="search" autocomplete="off" spellcheck="false" placeholder="Stanica ili link" aria-label="Pretraga stanica">
       </div>
       <div class="bar2" id="importBar" hidden>
         <span id="importText"></span>
-        <button class="btn small" type="button" id="btnImpTab">Otvori u novom tabu</button>
+        <button class="btn small" type="button" id="btnImpTab">Nova lista</button>
         <button class="btn small" type="button" id="btnImpReplace">Zameni listu</button>
         <button class="btn small" type="button" id="btnImpAppend">Dodaj na kraj</button>
         <button class="btn small ghost" type="button" id="btnImpCancel">Odustani</button>
